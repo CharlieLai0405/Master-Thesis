@@ -218,7 +218,7 @@ class OpenLLAMAPEFTModel(nn.Module):
 
     def rot90_img(self,x,k):
         # k is 0,1,2,3
-        degreesarr = [0., 90., 180., 270., 360]
+        degreesarr = [0., 90., 180., 270.]
         degrees = torch.tensor(degreesarr[k]).to(self.llama_model.dtype).to(self.device)
         x = K.geometry.transform.rotate(x, angle = degrees, padding_mode='reflection')
         return x
@@ -454,7 +454,7 @@ class OpenLLAMAPEFTModel(nn.Module):
 
             gt = inputs['masks']
             gt = torch.stack(gt, dim=0).to(self.device)
-            gt = gt.squeeze()
+            gt = gt.squeeze(1)
             gt[gt > 0.3], gt[gt <= 0.3] = 1, 0
             
 
@@ -480,7 +480,6 @@ class OpenLLAMAPEFTModel(nn.Module):
                         normal_path = find_first_file_in_directory("/".join(normal_path.split('/')[:-2])+'/good')
                     normal_paths.append(normal_path)
 
-                print(normal_paths)
                 query_patch_tokens = self.encode_image_for_one_shot_from_tensor(image_paths)
                 normal_patch_tokens = self.encode_image_for_one_shot_with_aug(normal_paths)
                 sims = []
@@ -618,7 +617,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             # image_embeds = anomaly_map_feature + image_embeds
             if inputs['normal_img_paths']:
                 query_patch_tokens = self.encode_image_for_one_shot(inputs['image_paths'])
-                if 'mvtec' in 'normal_img_paths':
+                if 'mvtec' in inputs['normal_img_paths'][0]:
                     normal_patch_tokens = self.encode_image_for_one_shot_with_aug(inputs['normal_img_paths'])
                 else:
                     normal_patch_tokens = self.encode_image_for_one_shot(inputs['normal_img_paths'])

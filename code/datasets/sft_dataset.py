@@ -72,7 +72,6 @@ class SupervisedDataset(Dataset):
     #def __getitem__(self, i) -> Dict[str, torch.Tensor]: # how to get item, 取一个样本
     def __getitem__(self, i):
         texts = self.caption_list[i]
-        print(texts)
         image_path = self.image_path_list[i]
         image = Image.open(image_path).convert('RGB')
         image_tensor = self.norm_transform(image)

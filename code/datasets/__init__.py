@@ -36,9 +36,9 @@ def load_sft_dataset(args):
     iter_ = DataLoader(
         data, 
         batch_sampler=batch_sampler, 
-        num_workers=1,
+        num_workers=4,
         collate_fn=data.collate, 
-        pin_memory=False
+        pin_memory=True
     )
     return data, iter_, sampler
 
@@ -65,9 +65,9 @@ def load_mvtec_dataset(args):
     iter_ = DataLoader(
         data, 
         batch_sampler=batch_sampler, 
-        num_workers=8,
+        num_workers=4,
         collate_fn=data.collate, 
-        pin_memory=False
+        pin_memory=True
     )
     return data, iter_, sampler
 
@@ -95,9 +95,9 @@ def load_visa_dataset(args):
     iter_ = DataLoader(
         data, 
         batch_sampler=batch_sampler, 
-        num_workers=8,
+        num_workers=4,
         collate_fn=data.collate, 
-        pin_memory=False
+        pin_memory=True
     )
     return data, iter_, sampler
 
@@ -125,8 +125,8 @@ def load_supervised_dataset_with_cn(args):
     iter_ = DataLoader(
         data, 
         batch_sampler=batch_sampler, 
-        num_workers=1,
+        num_workers=4,
         collate_fn=data.collate, 
-        pin_memory=False
+        pin_memory=True
     )
     return data, iter_, sampler

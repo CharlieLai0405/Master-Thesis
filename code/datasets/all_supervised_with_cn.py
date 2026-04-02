@@ -953,8 +953,6 @@ class SupervisedDataset(Dataset):
                 else:
                     conversation.append({"from":"gpt","value":random.choice(multi_answers_cn).format(get_class_name_cn(class_name))})
             
-        print(img_path, conversation)
-
         return img, conversation, class_name, mask, img_path
 
 
