@@ -4,6 +4,7 @@ from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
 from .AnomalyGPT_models import LinearLayer, PromptLearner
+from .prompts import get_prompts, NUM_NORMAL_PROMPTS, NUM_ABNORMAL_PROMPTS
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 import kornia as K
@@ -21,11 +22,13 @@ from torch.nn.utils import rnn
 CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', 'metal nut', 'pill', 'screw', 'tile', 'toothbrush', 'transistor', 'wood', 'zipper', 'object',
                'candle', 'cashew', 'chewinggum', 'fryum', 'macaroni', 'pcb', 'pipe fryum']
 
-prompt_normal = ['{}', 'flawless {}', 'perfect {}', 'unblemished {}', '{} without flaw', '{} without defect', '{} without damage']
-prompt_abnormal = ['damaged {}', 'broken {}', '{} with flaw', '{} with defect', '{} with damage']
+# Original generic prompts (kept for reference / fallback)
+# prompt_normal = ['{}', 'flawless {}', 'perfect {}', 'unblemished {}', '{} without flaw', '{} without defect', '{} without damage']
+# prompt_abnormal = ['damaged {}', 'broken {}', '{} with flaw', '{} with defect', '{} with damage']
+# prompt_state = [prompt_normal, prompt_abnormal]
+# prompt_templates = ['a photo of a {}.', 'a photo of the {}.']
 
-prompt_state = [prompt_normal, prompt_abnormal]
-prompt_templates = ['a photo of a {}.', 'a photo of the {}.']
+# Now using class-specific LLM-generated prompts from prompts.py
 # prompt_templates = [
 #                         'a cropped photo of the {}.', 'a cropped photo of a {}.', 'a close-up photo of a {}.', 'a close-up photo of the {}.',
 #                         'a bright photo of the {}.', 'a bright photo of a {}.', 'a dark photo of a {}.', 'a dark photo of the {}.',
@@ -41,16 +44,10 @@ objs = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', '
 prompt_sentences = {}
 
 for obj in objs:
-    prompt_sentence_obj = []
-    for i in range(len(prompt_state)):
-        prompted_state = [state.format(obj) for state in prompt_state[i]]
-        prompted_sentence = []
-        for s in prompted_state:
-            for template in prompt_templates:
-                prompted_sentence.append(template.format(s))
-        prompted_sentence = data.load_and_transform_text(prompted_sentence, torch.cuda.current_device())
-        prompt_sentence_obj.append(prompted_sentence)
-    prompt_sentences[obj] = prompt_sentence_obj
+    prompts = get_prompts(obj)
+    normal_sents = data.load_and_transform_text(prompts['normal'], torch.cuda.current_device())
+    abnormal_sents = data.load_and_transform_text(prompts['abnormal'], torch.cuda.current_device())
+    prompt_sentences[obj] = [normal_sents, abnormal_sents]
 
 
 
@@ -71,11 +68,11 @@ def encode_text_with_prompt_ensemble(model, obj, device):
     class_embeddings_abnormal = model({ModalityType.TEXT: abnormal_sentences})[ModalityType.TEXT][0]
     # class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
 
-    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), len(prompt_templates) * len(prompt_normal), 1024))
+    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), NUM_NORMAL_PROMPTS, 1024))
     class_embeddings_normal = class_embeddings_normal.mean(dim=1, keepdim=True)
     class_embeddings_normal = class_embeddings_normal / class_embeddings_normal.norm(dim=-1, keepdim=True)
 
-    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), len(prompt_templates) * len(prompt_abnormal), 1024))
+    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), NUM_ABNORMAL_PROMPTS, 1024))
     class_embeddings_abnormal = class_embeddings_abnormal.mean(dim=1, keepdim=True)
     class_embeddings_abnormal = class_embeddings_abnormal / class_embeddings_abnormal.norm(dim=-1, keepdim=True)
 
