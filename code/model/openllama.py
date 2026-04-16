@@ -41,13 +41,8 @@ CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leat
 objs = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', 'metal nut', 'pill', 'screw', 'tile', 'toothbrush', 'transistor', 'wood', 'zipper', 'object',
         'candle', 'cashew', 'chewinggum', 'fryum', 'macaroni', 'pcb', 'pipe fryum', 'macaroni1', 'macaroni2','pcb1', 'pcb2', 'pcb3', 'pcb4', 'capsules']
 
-prompt_sentences = {}
-
-for obj in objs:
-    prompts = get_prompts(obj)
-    normal_sents = data.load_and_transform_text(prompts['normal'], torch.cuda.current_device())
-    abnormal_sents = data.load_and_transform_text(prompts['abnormal'], torch.cuda.current_device())
-    prompt_sentences[obj] = [normal_sents, abnormal_sents]
+# Remove global prompt_sentences - will load lazily in encode_text_with_prompt_ensemble
+# prompt_sentences = {}
 
 
 
