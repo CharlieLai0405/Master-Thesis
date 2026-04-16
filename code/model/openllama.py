@@ -53,13 +53,14 @@ for obj in objs:
 
 def encode_text_with_prompt_ensemble(model, obj, device):
 
-    global prompt_sentences
     normal_sentences = []
     abnormal_sentences = []
     for idx in range(len(obj)):
-        sentence = prompt_sentences[obj[idx].replace('_', ' ')]
-        normal_sentences.append(sentence[0])
-        abnormal_sentences.append(sentence[1])
+        # Get class-specific prompts dynamically
+        class_name = obj[idx].replace('_', ' ')
+        prompts = get_prompts(class_name)
+        normal_sentences.append(data.load_and_transform_text(prompts['normal'], device))
+        abnormal_sentences.append(data.load_and_transform_text(prompts['abnormal'], device))
 
     normal_sentences = torch.cat(normal_sentences).to(device)
     abnormal_sentences = torch.cat(abnormal_sentences).to(device)
