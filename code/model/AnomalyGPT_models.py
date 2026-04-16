@@ -5,6 +5,27 @@ import numpy as np
 from torch.nn import functional as F
 
 
+class TextPromptAdapter(nn.Module):
+    """Learnable residual adapter for ImageBind text embeddings.
+
+    Applies a bottleneck MLP with a learnable scaling factor so that
+    at initialisation the adapter is close to an identity function
+    (scale starts small, up_proj is zero-initialised).
+    """
+
+    def __init__(self, embed_dim: int = 1024, hidden_dim: int = 128, scale_init: float = 0.1):
+        super().__init__()
+        self.down_proj = nn.Linear(embed_dim, hidden_dim)
+        self.act = nn.GELU()
+        self.up_proj = nn.Linear(hidden_dim, embed_dim)
+        self.scale = nn.Parameter(torch.tensor(scale_init))
+        nn.init.zeros_(self.up_proj.weight)
+        nn.init.zeros_(self.up_proj.bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.scale * self.up_proj(self.act(self.down_proj(x)))
+
+
 class Normalize(nn.Module):
     def __init__(self, dim: int) -> None:
         super().__init__()

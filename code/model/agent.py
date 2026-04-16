@@ -19,6 +19,9 @@ class DeepSpeedAgent:
         for name, param in self.model.prompt_learner.named_parameters():
             param.requires_grad = True
 
+        for name, param in self.model.text_adapter.named_parameters():
+            param.requires_grad = True
+
 
 
 

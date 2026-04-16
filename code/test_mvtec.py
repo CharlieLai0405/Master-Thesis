@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser("AnomalyGPT", add_help=True)
 parser.add_argument("--few_shot", type=bool, default=True)
 parser.add_argument("--k_shot", type=int, default=1)
 parser.add_argument("--round", type=int, default=3)
+parser.add_argument("--adapter_ckpt", type=str, default=None,
+                    help="Path to adapter checkpoint (e.g. ./ckpt/train_mvtec_adapter/adapter_model.pt)")
 
 
 command_args = parser.parse_args()
@@ -55,6 +57,10 @@ delta_ckpt = torch.load(args['delta_ckpt_path'], map_location=torch.device('cpu'
 model.load_state_dict(delta_ckpt, strict=False)
 delta_ckpt = torch.load(args['anomalygpt_ckpt_path'], map_location=torch.device('cpu'))
 model.load_state_dict(delta_ckpt, strict=False)
+if command_args.adapter_ckpt:
+    adapter_ckpt = torch.load(command_args.adapter_ckpt, map_location=torch.device('cpu'))
+    model.load_state_dict(adapter_ckpt, strict=False)
+    print(f'[!] Loaded adapter checkpoint from {command_args.adapter_ckpt}')
 model = model.eval().half().cuda()
 
 print(f'[!] init the 7b model over ...')

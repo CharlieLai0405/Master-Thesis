@@ -3,8 +3,7 @@ import torch.nn.functional as F
 from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
-from .AnomalyGPT_models import LinearLayer, PromptLearner
-from .prompts import get_prompts, NUM_NORMAL_PROMPTS, NUM_ABNORMAL_PROMPTS
+from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 import kornia as K
@@ -22,13 +21,11 @@ from torch.nn.utils import rnn
 CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', 'metal nut', 'pill', 'screw', 'tile', 'toothbrush', 'transistor', 'wood', 'zipper', 'object',
                'candle', 'cashew', 'chewinggum', 'fryum', 'macaroni', 'pcb', 'pipe fryum']
 
-# Original generic prompts (kept for reference / fallback)
-# prompt_normal = ['{}', 'flawless {}', 'perfect {}', 'unblemished {}', '{} without flaw', '{} without defect', '{} without damage']
-# prompt_abnormal = ['damaged {}', 'broken {}', '{} with flaw', '{} with defect', '{} with damage']
-# prompt_state = [prompt_normal, prompt_abnormal]
-# prompt_templates = ['a photo of a {}.', 'a photo of the {}.']
+prompt_normal = ['{}', 'flawless {}', 'perfect {}', 'unblemished {}', '{} without flaw', '{} without defect', '{} without damage']
+prompt_abnormal = ['damaged {}', 'broken {}', '{} with flaw', '{} with defect', '{} with damage']
 
-# Now using class-specific LLM-generated prompts from prompts.py
+prompt_state = [prompt_normal, prompt_abnormal]
+prompt_templates = ['a photo of a {}.', 'a photo of the {}.']
 # prompt_templates = [
 #                         'a cropped photo of the {}.', 'a cropped photo of a {}.', 'a close-up photo of a {}.', 'a close-up photo of the {}.',
 #                         'a bright photo of the {}.', 'a bright photo of a {}.', 'a dark photo of a {}.', 'a dark photo of the {}.',
@@ -41,34 +38,47 @@ CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leat
 objs = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', 'metal nut', 'pill', 'screw', 'tile', 'toothbrush', 'transistor', 'wood', 'zipper', 'object',
         'candle', 'cashew', 'chewinggum', 'fryum', 'macaroni', 'pcb', 'pipe fryum', 'macaroni1', 'macaroni2','pcb1', 'pcb2', 'pcb3', 'pcb4', 'capsules']
 
-# Remove global prompt_sentences - will load lazily in encode_text_with_prompt_ensemble
-# prompt_sentences = {}
+prompt_sentences = {}
+
+for obj in objs:
+    prompt_sentence_obj = []
+    for i in range(len(prompt_state)):
+        prompted_state = [state.format(obj) for state in prompt_state[i]]
+        prompted_sentence = []
+        for s in prompted_state:
+            for template in prompt_templates:
+                prompted_sentence.append(template.format(s))
+        prompted_sentence = data.load_and_transform_text(prompted_sentence, torch.cuda.current_device())
+        prompt_sentence_obj.append(prompted_sentence)
+    prompt_sentences[obj] = prompt_sentence_obj
 
 
 
-def encode_text_with_prompt_ensemble(model, obj, device):
+def encode_text_with_prompt_ensemble(model, obj, device, text_adapter=None):
 
+    global prompt_sentences
     normal_sentences = []
     abnormal_sentences = []
     for idx in range(len(obj)):
-        # Get class-specific prompts dynamically
-        class_name = obj[idx].replace('_', ' ')
-        prompts = get_prompts(class_name)
-        normal_sentences.append(data.load_and_transform_text(prompts['normal'], device))
-        abnormal_sentences.append(data.load_and_transform_text(prompts['abnormal'], device))
+        sentence = prompt_sentences[obj[idx].replace('_', ' ')]
+        normal_sentences.append(sentence[0])
+        abnormal_sentences.append(sentence[1])
 
     normal_sentences = torch.cat(normal_sentences).to(device)
     abnormal_sentences = torch.cat(abnormal_sentences).to(device)
 
     class_embeddings_normal = model({ModalityType.TEXT: normal_sentences})[ModalityType.TEXT][0]
     class_embeddings_abnormal = model({ModalityType.TEXT: abnormal_sentences})[ModalityType.TEXT][0]
-    # class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
 
-    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), NUM_NORMAL_PROMPTS, 1024))
+    if text_adapter is not None:
+        class_embeddings_normal = text_adapter(class_embeddings_normal)
+        class_embeddings_abnormal = text_adapter(class_embeddings_abnormal)
+
+    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), len(prompt_templates) * len(prompt_normal), 1024))
     class_embeddings_normal = class_embeddings_normal.mean(dim=1, keepdim=True)
     class_embeddings_normal = class_embeddings_normal / class_embeddings_normal.norm(dim=-1, keepdim=True)
 
-    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), NUM_ABNORMAL_PROMPTS, 1024))
+    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), len(prompt_templates) * len(prompt_abnormal), 1024))
     class_embeddings_abnormal = class_embeddings_abnormal.mean(dim=1, keepdim=True)
     class_embeddings_abnormal = class_embeddings_abnormal / class_embeddings_abnormal.norm(dim=-1, keepdim=True)
 
@@ -176,6 +186,8 @@ class OpenLLAMAPEFTModel(nn.Module):
         self.image_decoder = LinearLayer(1280, 1024, 4)
 
         self.prompt_learner = PromptLearner(1, 4096)
+
+        self.text_adapter = TextPromptAdapter(embed_dim=1024, hidden_dim=128)
 
         self.loss_focal = FocalLoss()
         self.loss_dice = BinaryDiceLoss()
@@ -438,7 +450,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             class_name = inputs['class_names']
 
             loss_pixel = 0
-            feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, class_name, self.device)
+            feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, class_name, self.device, self.text_adapter)
 
             anomaly_maps = []
             for layer in range(len(patch_tokens)):
@@ -534,7 +546,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             output_texts = inputs['output_texts']
 
 
-            feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, ['object'] * len(image_paths), self.device)
+            feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, ['object'] * len(image_paths), self.device, self.text_adapter)
 
             anomaly_maps = []
             for layer in range(len(patch_tokens)):
@@ -593,10 +605,10 @@ class OpenLLAMAPEFTModel(nn.Module):
                 
             if not web_demo:
                 image_embeds, _, patch_tokens = self.encode_image(inputs['image_paths'])
-                feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, [c_name], self.device)
+                feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, [c_name], self.device, self.text_adapter)
             else:
                 image_embeds, _, patch_tokens = self.encode_image_for_web_demo(inputs['image_paths'])
-                feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, [c_name], self.device)
+                feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, [c_name], self.device, self.text_adapter)
 
             anomaly_maps = []
             for layer in range(len(patch_tokens)):
