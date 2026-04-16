@@ -100,11 +100,13 @@ def main(**args):
             del batch_sft
             current_step += 1
             # torch.cuda.empty_cache()
-            # if iter_every_epoch % 1000 == 0:
-            #     agent.save_model(args['save_path'], 0)
+            if current_step % 1000 == 0:
+                torch.distributed.barrier()
+                agent.save_model(args['save_path'], current_step)
+                print(f'[!] checkpoint saved at step {current_step}')
         # save at the end of the training
         torch.distributed.barrier()
-        agent.save_model(args['save_path'], 0)
+        agent.save_model(args['save_path'], current_step)
 
 if __name__ == "__main__":
     args = parser_args()

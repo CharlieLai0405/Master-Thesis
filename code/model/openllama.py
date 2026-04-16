@@ -4,9 +4,16 @@ from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
 from .AnomalyGPT_models import LinearLayer, PromptLearner
-from transformers import StoppingCriteria, StoppingCriteriaList
+from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 import kornia as K
+
+from peft import (
+    get_peft_model,
+    LoraConfig,
+    TaskType,
+    prepare_model_for_int8_training,
+)
 
 import torch
 from torch.nn.utils import rnn
@@ -486,9 +493,9 @@ class OpenLLAMAPEFTModel(nn.Module):
                 B = len(image_paths)
 
                 for i in range(len(query_patch_tokens)):
-                    query_patch_tokens_reshaped = query_patch_tokens[i].view(B,256,1,1280)
-                    normal_tokens_reshaped = normal_patch_tokens[i].reshape(B,1,-1,1280)
-                    cosine_similarity_matrix = F.cosine_similarity(query_patch_tokens_reshaped, normal_tokens_reshaped, dim=-1)
+                    q_norm = F.normalize(query_patch_tokens[i], dim=-1)
+                    n_norm = F.normalize(normal_patch_tokens[i], dim=-1)
+                    cosine_similarity_matrix = torch.bmm(q_norm, n_norm.transpose(-2, -1))
                     sim_max, _ = torch.max(cosine_similarity_matrix, dim=-1)
                     sims.append(sim_max)
 
@@ -624,9 +631,9 @@ class OpenLLAMAPEFTModel(nn.Module):
                 sims = []
 
                 for i in range(len(query_patch_tokens)):
-                    query_patch_tokens_reshaped = query_patch_tokens[i].view(256,1,1280)
-                    normal_tokens_reshaped = normal_patch_tokens[i].reshape(1,-1,1280)
-                    cosine_similarity_matrix = F.cosine_similarity(query_patch_tokens_reshaped, normal_tokens_reshaped, dim=2)
+                    q_norm = F.normalize(query_patch_tokens[i], dim=-1)
+                    n_norm = F.normalize(normal_patch_tokens[i], dim=-1)
+                    cosine_similarity_matrix = torch.mm(q_norm.view(-1, q_norm.shape[-1]), n_norm.view(-1, n_norm.shape[-1]).transpose(0, 1))
                     sim_max, _ = torch.max(cosine_similarity_matrix, dim=1)
                     sims.append(sim_max)
 

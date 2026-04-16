@@ -53,18 +53,35 @@ class SupervisedDataset(Dataset):
                         )
 
         self.image_path_list, self.caption_list = [], []
+        skipped = 0
         for item in json_data:
             one_image_name, one_caption = item["image_name"], item["conversation"]
             if len(one_caption) > 2:
                 one_caption = one_caption[:2]
-            # print(one_caption)
-            # TODO: stage 2 dataset format is invalid
             if not one_image_name.endswith('.jpg'):
                 one_image_name += '.jpg'
-            one_image_path = image_root_path + '/{}'.format(one_image_name)
+            
+            # 原始路徑拼接
+            one_image_path = os.path.join(image_root_path, one_image_name)
+            
+            # [修復] 處理補零不一致問題 (例如 JSON 寫 3048.jpg 但硬碟是 000000003048.jpg)
+            if not os.path.exists(one_image_path):
+                name_only = one_image_name.replace('.jpg', '')
+                if name_only.isdigit():
+                    padded_name = name_only.zfill(12) + '.jpg'
+                    padded_path = os.path.join(image_root_path, padded_name)
+                    if os.path.exists(padded_path):
+                        one_image_path = padded_path
+                    else:
+                        skipped += 1
+                        continue
+                else:
+                    skipped += 1
+                    continue
+            
             self.image_path_list.append(one_image_path)
             self.caption_list.append(one_caption)
-        print(f'[!] collect {len(self.image_path_list)} samples for training')
+        print(f'[!] collect {len(self.image_path_list)} samples for training (skipped {skipped} missing images)')
 
     def __len__(self): # number of instances
         return len(self.image_path_list)

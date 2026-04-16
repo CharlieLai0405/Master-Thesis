@@ -1,7 +1,7 @@
 {
   "train_batch_size": 16,
-  "train_micro_batch_size_per_gpu": 2,
-  "gradient_accumulation_steps": 4,
+  "train_micro_batch_size_per_gpu": 1,
+  "gradient_accumulation_steps": 8,
   "steps_per_print": 1,
   "gradient_clipping": 1.0,
   "zero_optimization": {
@@ -15,12 +15,10 @@
     "allgather_partitions": true
   },
   "fp16": {
-    "enabled": false,
-    "opt_level": "O2",
-    "min_loss_scale": 1
+    "enabled": false
   },
   "bf16": {
-    "enable": true
+    "enabled": true
   },
   "optimizer": {
     "type": "Adam",
@@ -30,7 +28,7 @@
         0.9,
         0.95
       ],
-      "eps": 1e-8,
+      "eps": 1e-08,
       "weight_decay": 0.001
     }
   },
@@ -51,5 +49,4 @@
     "synchronize_checkpoint_boundary": false,
     "profile": false
   }
-
 }

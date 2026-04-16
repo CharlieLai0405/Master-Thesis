@@ -41,7 +41,7 @@ args = {
     'model': 'openllama_peft',
     'imagebind_ckpt_path': '../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth',
     'vicuna_ckpt_path': '../pretrained_ckpt/vicuna_ckpt/7b_v0',
-    'anomalygpt_ckpt_path': './ckpt/train_visa/pytorch_model.pt',
+    'anomalygpt_ckpt_path': './ckpt/train_mvtec/pytorch_model.pt',
     'delta_ckpt_path': '../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt',
     'stage': 2,
     'max_tgt_len': 128,
@@ -100,7 +100,7 @@ def predict(
     return response, pixel_output
 
 input = "Is there any anomaly in the image?"
-root_dir = '../data/mvtec_anomaly_detection'
+root_dir = '/workspace/Master-Thesis/data/mvtec_anomaly_detection'
 
 mask_transform = transforms.Compose([
                                 transforms.Resize((224, 224)),
@@ -112,8 +112,8 @@ CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid','hazelnut', 'leath
 precision = []
 
 for c_name in CLASS_NAMES:
-    normal_img_paths = ["../data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4).zfill(3)+".png", "../data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 1).zfill(3)+".png",
-                        "../data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 2).zfill(3)+".png", "../data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 3).zfill(3)+".png"]
+    normal_img_paths = ["/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4).zfill(3)+".png", "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 1).zfill(3)+".png",
+                        "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 2).zfill(3)+".png", "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 3).zfill(3)+".png"]
     normal_img_paths = normal_img_paths[:command_args.k_shot]
     right = 0
     wrong = 0

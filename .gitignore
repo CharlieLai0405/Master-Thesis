@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+ckpt/
+data/
+pretrained_ckpt/
+*.pth
+*.pt
+*.xz

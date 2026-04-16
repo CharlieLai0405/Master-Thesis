@@ -59,22 +59,24 @@ class DeepSpeedAgent:
         return mle_acc
 
     def save_model(self, path, current_step):
+        # only save on rank 0 to avoid race conditions
+        if int(os.environ.get('RANK', '0')) != 0:
+            return
         # only save trainable model parameters
-        param_grad_dic = {
-            k: v.requires_grad for (k, v) in self.ds_engine.module.named_parameters()
-        }
-        state_dict = self.ds_engine.module.state_dict()
+        from collections import OrderedDict
+        import torch
         checkpoint = OrderedDict()
         for k, v in self.ds_engine.module.named_parameters():
             if v.requires_grad:
-                print(k)
-                checkpoint[k] = v
+                checkpoint[k] = v.data.cpu().clone()
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
         torch.save(checkpoint, f'{path}/pytorch_model.pt')
         # save tokenizer
         self.model.llama_tokenizer.save_pretrained(path)
         # save configuration
         self.model.llama_model.config.save_pretrained(path)
-        print(f'[!] save model into {path}')
+        print(f'[!] Successfully saved model into {path}')
 
     def load_stage_1_parameters(self, path):
         delta_ckpt = torch.load(path, map_location=torch.device('cpu'))
