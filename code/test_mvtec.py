@@ -14,6 +14,8 @@ parser.add_argument("--k_shot", type=int, default=1)
 parser.add_argument("--round", type=int, default=3)
 parser.add_argument("--adapter_ckpt", type=str, default=None,
                     help="Path to adapter checkpoint (e.g. ./ckpt/train_mvtec_adapter/adapter_model.pt)")
+parser.add_argument("--anomalygpt_ckpt", type=str, default=None,
+                    help="Override anomalygpt checkpoint path (e.g. ./ckpt/train_mvtec_blend/pytorch_model.pt)")
 
 
 command_args = parser.parse_args()
@@ -43,7 +45,7 @@ args = {
     'model': 'openllama_peft',
     'imagebind_ckpt_path': '../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth',
     'vicuna_ckpt_path': '../pretrained_ckpt/vicuna_ckpt/7b_v0',
-    'anomalygpt_ckpt_path': './ckpt/train_mvtec/pytorch_model.pt',
+    'anomalygpt_ckpt_path': command_args.anomalygpt_ckpt if command_args.anomalygpt_ckpt else './ckpt/train_mvtec/pytorch_model.pt',
     'delta_ckpt_path': '../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt',
     'stage': 2,
     'max_tgt_len': 128,
