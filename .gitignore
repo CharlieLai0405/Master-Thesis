@@ -6,3 +6,4 @@ pretrained_ckpt/
 *.pth
 *.pt
 *.xz
+code/logs/

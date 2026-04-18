@@ -200,13 +200,13 @@ class OpenLLAMAPEFTModel(nn.Module):
         print ('Visual encoder initialized.')
 
         print (f'Initializing language decoder from {vicuna_ckpt_path} ...')
-        
+
         # add the lora module
         peft_config = LoraConfig(
-            task_type=TaskType.CAUSAL_LM, 
-            inference_mode=False, 
-            r=self.args['lora_r'], 
-            lora_alpha=self.args['lora_alpha'], 
+            task_type=TaskType.CAUSAL_LM,
+            inference_mode=False,
+            r=self.args['lora_r'],
+            lora_alpha=self.args['lora_alpha'],
             lora_dropout=self.args['lora_dropout'],
             target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj']
         )
@@ -281,7 +281,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size
         atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(self.device) # bsz x 1
         return inputs_llama, atts_llama, patch_tokens
-    
+
     def encode_image_for_web_demo(self, image_paths):
         inputs = {ModalityType.VISION: data.load_and_transform_vision_data_for_web_demo(image_paths, self.device)}
         # convert into visual dtype
@@ -295,7 +295,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size
         atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(self.device) # bsz x 1
         return inputs_llama, atts_llama, patch_tokens
-    
+
     def encode_image_for_one_shot(self, image_paths):
         inputs = {ModalityType.VISION: data.load_and_transform_vision_data(image_paths, self.device)}
         # convert into visual dtype
@@ -307,7 +307,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :]
 
         return patch_features
-    
+
     def encode_image_for_one_shot_from_tensor(self, image_tensors):
         if not isinstance(image_tensors, list):
             image_tensors = [image_tensors]
@@ -321,7 +321,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :]
 
         return patch_features
-    
+
     def encode_image_for_one_shot_with_aug(self, image_paths):
         image_tensors = data.load_and_transform_vision_data(image_paths, self.device).to(self.llama_model.dtype)
         B,C,H,W = image_tensors.shape
@@ -347,7 +347,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :].reshape(B,4,256,1280).reshape(B, 4 * 256, 1280)
 
         return patch_features
-    
+
     def encode_image_from_tensor(self, image_tensors):
         if not isinstance(image_tensors, list):
             image_tensors = [image_tensors]
@@ -364,7 +364,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size
         atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(self.device) # bsz x 1
         return inputs_llama, atts_llama, patch_tokens
-    
+
     def encode_image_from_tensor_no_patch(self, image_tensors):
         if not isinstance(image_tensors, list):
             image_tensors = [image_tensors]
@@ -391,13 +391,13 @@ class OpenLLAMAPEFTModel(nn.Module):
 
         batch_size = img_embeds.shape[0]
         p_before = PROMPT_START
-        p_before_tokens = self.llama_tokenizer(p_before, 
+        p_before_tokens = self.llama_tokenizer(p_before,
             return_tensors="pt", add_special_tokens=False).to(self.device)
         # peft model need deeper call
         p_before_embeds = self.llama_model.model.model.embed_tokens(p_before_tokens.input_ids).expand(batch_size, -1, -1) # bsz x s1 x embed_dim
 
         p_middle = '</Img> '
-        p_middle_tokens = self.llama_tokenizer(p_middle, 
+        p_middle_tokens = self.llama_tokenizer(p_middle,
             return_tensors="pt", add_special_tokens=False).to(self.device)
         # peft model need deeper call
         p_middle_embeds = self.llama_model.model.model.embed_tokens(p_middle_tokens.input_ids).expand(batch_size, -1, -1) # bsz x s1 x embed_dim
@@ -409,14 +409,14 @@ class OpenLLAMAPEFTModel(nn.Module):
                          device=p_before_tokens.input_ids.device) * self.llama_tokenizer.bos_token_id # bsz x 1
         bos_embeds = self.llama_model.model.model.embed_tokens(bos) # bsz x 1 x embed_dim
 
-        
+
 
         if anomaly_embedding != None:
             inputs_embeds = torch.cat([bos_embeds, p_before_embeds, img_embeds, p_middle_embeds, anomaly_embedding, p_after_embeds], dim=1) # bsz x (1+s1+1+s2) x embed_dim
             # create targets
             empty_targets = (
                 torch.ones([batch_size, 1+p_before_embeds.size()[1]+1+p_middle_embeds.size()[1] + anomaly_embedding.size()[1]], # 1 (bos) + s1 + 1 (image vector)
-                        dtype=torch.long).to(self.device).fill_(-100)  
+                        dtype=torch.long).to(self.device).fill_(-100)
             ) # bsz x (1 + s1 + 1)
             targets = torch.cat([empty_targets, target_ids], dim=1) # bsz x (1 + s1 + 1 + s2)
             assert inputs_embeds.size()[1] == targets.size()[1]
@@ -424,13 +424,13 @@ class OpenLLAMAPEFTModel(nn.Module):
             atts_prefix = torch.ones([batch_size, 1+p_before_embeds.size()[1]+1+p_middle_embeds.size()[1] + anomaly_embedding.size()[1]], dtype=torch.long).to(self.device) # bsz x (1 + s1 +1)
             attention_mask = torch.cat([atts_prefix, attention_mask], dim=1)
             assert attention_mask.size() == targets.size() # bsz x (1 + s1 + 1 + s2)
-            return inputs_embeds, targets, attention_mask 
+            return inputs_embeds, targets, attention_mask
         else:
             inputs_embeds = torch.cat([bos_embeds, p_before_embeds, img_embeds, p_middle_embeds, p_after_embeds], dim=1) # bsz x (1+s1+1+s2) x embed_dim
             # create targets
             empty_targets = (
                 torch.ones([batch_size, 1+p_before_embeds.size()[1]+1+p_middle_embeds.size()[1]], # 1 (bos) + s1 + 1 (image vector)
-                        dtype=torch.long).to(self.device).fill_(-100)  
+                        dtype=torch.long).to(self.device).fill_(-100)
             ) # bsz x (1 + s1 + 1)
             targets = torch.cat([empty_targets, target_ids], dim=1) # bsz x (1 + s1 + 1 + s2)
             assert inputs_embeds.size()[1] == targets.size()[1]
@@ -438,7 +438,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             atts_prefix = torch.ones([batch_size, 1+p_before_embeds.size()[1]+1+p_middle_embeds.size()[1]], dtype=torch.long).to(self.device) # bsz x (1 + s1 +1)
             attention_mask = torch.cat([atts_prefix, attention_mask], dim=1)
             assert attention_mask.size() == targets.size() # bsz x (1 + s1 + 1 + s2)
-            return inputs_embeds, targets, attention_mask 
+            return inputs_embeds, targets, attention_mask
 
 
     def forward(self, inputs):
@@ -462,13 +462,13 @@ class OpenLLAMAPEFTModel(nn.Module):
                                             size=224, mode='bilinear', align_corners=True)
 
                 anomaly_map = torch.softmax(anomaly_map, dim=1)
-                anomaly_maps.append(anomaly_map)           
+                anomaly_maps.append(anomaly_map)
 
             gt = inputs['masks']
             gt = torch.stack(gt, dim=0).to(self.device)
             gt = gt.squeeze(1)
             gt[gt > 0.3], gt[gt <= 0.3] = 1, 0
-            
+
 
             for num in range(len(anomaly_maps)):
                 f_loss = self.loss_focal(anomaly_maps[num], gt)
@@ -479,7 +479,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 anomaly_maps[num] = anomaly_maps[num][:,1,:,:]
 
             anomaly_map_all = torch.mean(torch.stack(anomaly_maps, dim=0), dim=0).unsqueeze(1)
-        
+
             if random.randint(0,1) == 0 and len(inputs['img_paths']) == len(image_paths):
 
                 normal_paths = []
@@ -537,9 +537,9 @@ class OpenLLAMAPEFTModel(nn.Module):
             gen_acc = valid_tokens.sum().item() / valid_mask.sum().item()
 
             return loss + loss_pixel, gen_acc
-        
+
         else:
-            
+
             image_paths = inputs['image_paths']
             img_embeds, _, patch_tokens = self.encode_image_from_tensor(image_paths)
 
@@ -588,21 +588,21 @@ class OpenLLAMAPEFTModel(nn.Module):
             valid_mask = (labels != -100).reshape(-1)
             valid_tokens = gen_acc & valid_mask    # [B*S]
             gen_acc = valid_tokens.sum().item() / valid_mask.sum().item()
-            
+
             return loss, gen_acc
 
 
     def extract_multimodal_feature(self, inputs, web_demo):
         features = []
         if inputs['image_paths']:
-            
+
             prompt = inputs['prompt']
             c_name = 'object'
             for name in CLASS_NAMES:
                 if name in prompt:
                     c_name = name
                     break
-                
+
             if not web_demo:
                 image_embeds, _, patch_tokens = self.encode_image(inputs['image_paths'])
                 feats_text_tensor = encode_text_with_prompt_ensemble(self.visual_encoder, [c_name], self.device, self.text_adapter)
@@ -645,7 +645,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 sim = torch.mean(torch.stack(sims,dim=0), dim=0).reshape(1,1,16,16)
                 sim = F.interpolate(sim,size=224, mode='bilinear', align_corners=True)
                 anomaly_map_ret = 1 - sim # (anomaly_map_ret + 1 - sim) / 2
-                
+
 
             features.append(image_embeds)
         if inputs['audio_paths']:
@@ -672,12 +672,12 @@ class OpenLLAMAPEFTModel(nn.Module):
 
         batch_size = feature_embeds.shape[0]
         p_before = PROMPT_START
-        p_before_tokens = self.llama_tokenizer(p_before, 
+        p_before_tokens = self.llama_tokenizer(p_before,
             return_tensors="pt", add_special_tokens=False).to(self.device)
         p_before_embeds = self.llama_model.model.model.embed_tokens(p_before_tokens.input_ids).expand(batch_size, -1, -1) # bsz x s1 x embed_dim
-        
+
         p_middle = '</Img> '
-        p_middle_tokens = self.llama_tokenizer(p_middle, 
+        p_middle_tokens = self.llama_tokenizer(p_middle,
             return_tensors="pt", add_special_tokens=False).to(self.device)
         # peft model need deeper call
         p_middle_embeds = self.llama_model.model.model.embed_tokens(p_middle_tokens.input_ids).expand(batch_size, -1, -1) # bsz x s1 x embed_dim
@@ -696,7 +696,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                          device=p_before_tokens.input_ids.device) * self.llama_tokenizer.bos_token_id # bsz x 1
         bos_embeds = self.llama_model.model.model.embed_tokens(bos) # bsz x 1 x embed_dim
         inputs_embeds = torch.cat([bos_embeds, p_before_embeds, feature_embeds, p_middle_embeds, anomaly_map_prompts, p_after_embeds], dim=1) # bsz x (1+s1+1+s2) x embed_dim
-    
+
         return inputs_embeds, anomaly_map
 
     def generate(self, inputs, web_demo=False):

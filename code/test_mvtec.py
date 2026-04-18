@@ -36,7 +36,7 @@ describles['transistor'] = "This is a photo of a transistor for anomaly detectio
 describles['wood'] = "This is a photo of wood for anomaly detection, which should be brown with patterns, without any damage, flaw, defect, scratch, hole or broken part."
 describles['zipper'] = "This is a photo of a zipper for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
 
-FEW_SHOT = command_args.few_shot 
+FEW_SHOT = command_args.few_shot
 
 # init the model
 args = {
@@ -70,14 +70,14 @@ p_auc_list = []
 i_auc_list = []
 
 def predict(
-    input, 
-    image_path, 
-    normal_img_path, 
-    max_length, 
-    top_p, 
+    input,
+    image_path,
+    normal_img_path,
+    max_length,
+    top_p,
     temperature,
     history,
-    modality_cache,  
+    modality_cache,
 ):
     prompt_text = ''
     for idx, (q, a) in enumerate(history):
@@ -147,7 +147,7 @@ for c_name in CLASS_NAMES:
                 img_mask = mask_transform(img_mask)
                 img_mask[img_mask > 0.1], img_mask[img_mask <= 0.1] = 1, 0
                 img_mask = img_mask.squeeze().reshape(224, 224).cpu().numpy()
-                
+
                 anomaly_map = anomaly_map.reshape(224, 224).detach().cpu().numpy()
 
                 p_label.append(img_mask)
@@ -171,11 +171,11 @@ for c_name in CLASS_NAMES:
     i_pred = np.array(i_pred)
     i_label = np.array(i_label)
 
-    
+
 
     p_auroc = round(roc_auc_score(p_label.ravel(), p_pred.ravel()) * 100,2)
     i_auroc = round(roc_auc_score(i_label.ravel(), i_pred.ravel()) * 100,2)
-    
+
     p_auc_list.append(p_auroc)
     i_auc_list.append(i_auroc)
     precision.append(100 * right / (right + wrong))

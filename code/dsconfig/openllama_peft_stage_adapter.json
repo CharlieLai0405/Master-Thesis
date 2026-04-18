@@ -1,7 +1,7 @@
 {
-  "train_batch_size": 16,
-  "train_micro_batch_size_per_gpu": 1,
-  "gradient_accumulation_steps": 8,
+  "train_batch_size": 12,
+  "train_micro_batch_size_per_gpu": 3,
+  "gradient_accumulation_steps": 2,
   "steps_per_print": 1,
   "gradient_clipping": 1.0,
   "zero_optimization": {
@@ -10,8 +10,8 @@
       "device": "cpu"
     },
     "contiguous_gradients": true,
-    "allgather_bucket_size": 50000,
-    "reduce_bucket_size": 50000,
+    "allgather_bucket_size": 5000000,
+    "reduce_bucket_size": 5000000,
     "allgather_partitions": true
   },
   "fp16": {
@@ -43,7 +43,7 @@
   },
   "activation_checkpointing": {
     "partition_activations": true,
-    "cpu_checkpointing": true,
+    "cpu_checkpointing": false,
     "contiguous_memory_optimization": false,
     "number_checkpoints": null,
     "synchronize_checkpoint_boundary": false,

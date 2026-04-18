@@ -37,6 +37,8 @@ def parser_args():
     parser.add_argument('--data_path', type=str)
     parser.add_argument('--image_root_path', type=str)
     parser.add_argument('--epochs', type=int, default=3)
+    parser.add_argument('--max_steps', type=int, default=0,
+                        help='Stop after N steps (0 = run full epochs)')
     return parser.parse_args()
 
 
@@ -165,7 +167,8 @@ def main(**args):
     agent = AdapterAgent(model, args)
     torch.distributed.barrier()
 
-    pbar = tqdm(total=2 * length)
+    max_steps = args.get('max_steps', 0)
+    pbar = tqdm(total=(2 * length) if max_steps == 0 else (max_steps * 2))
     current_step = 0
     for epoch_i in tqdm(range(args['epochs'])):
         for batch, batch_sft in zip(train_iter, train_iter_sft):
@@ -174,9 +177,13 @@ def main(**args):
             agent.train_model(batch_sft, current_step=current_step, pbar=pbar)
             del batch_sft
             current_step += 1
+            if max_steps > 0 and current_step >= max_steps:
+                break
             if current_step % 500 == 0:
                 torch.distributed.barrier()
                 agent.save_model(args['save_path'], current_step)
+        if max_steps > 0 and current_step >= max_steps:
+            break
         torch.distributed.barrier()
         agent.save_model(args['save_path'], current_step)
 
