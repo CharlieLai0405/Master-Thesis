@@ -6,6 +6,7 @@ from .modeling_llama import LlamaForCausalLM
 from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
+from .prompts import get_prompts
 import kornia as K
 
 from peft import (
@@ -41,15 +42,28 @@ objs = ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', '
 prompt_sentences = {}
 
 for obj in objs:
+    # Try class-specific prompts first, fallback to generic
+    cs_prompts = get_prompts(obj.replace(' ', '_'))
+
+    has_class_specific = (obj.replace(" ", "_") != "object" and
+                          cs_prompts != get_prompts('__nonexistent__'))
+    
     prompt_sentence_obj = []
-    for i in range(len(prompt_state)):
-        prompted_state = [state.format(obj) for state in prompt_state[i]]
-        prompted_sentence = []
-        for s in prompted_state:
-            for template in prompt_templates:
-                prompted_sentence.append(template.format(s))
-        prompted_sentence = data.load_and_transform_text(prompted_sentence, torch.cuda.current_device())
-        prompt_sentence_obj.append(prompted_sentence)
+    if has_class_specific:
+        # Use class-specific prompts from prompts.py
+        normal_sents = data.load_and_transform_text(cs_prompts['normal'], torch.cuda.current_device())
+        abnormal_sents = data.load_and_transform_text(cs_prompts['abnormal'], torch.cuda.current_device())
+        prompt_sentence_obj = [normal_sents, abnormal_sents]
+    else:
+        # Fallback to generic template-based prompts
+        for i in range(len(prompt_state)):
+            prompted_state = [state.format(obj) for state in prompt_state[i]]
+            prompted_sentence = []
+            for s in prompted_state:
+                for template in prompt_templates:
+                    prompted_sentence.append(template.format(s))
+            prompted_sentence = data.load_and_transform_text(prompted_sentence, torch.cuda.current_device())
+            prompt_sentence_obj.append(prompted_sentence)
     prompt_sentences[obj] = prompt_sentence_obj
 
 
@@ -74,11 +88,13 @@ def encode_text_with_prompt_ensemble(model, obj, device, text_adapter=None):
         class_embeddings_normal = text_adapter(class_embeddings_normal)
         class_embeddings_abnormal = text_adapter(class_embeddings_abnormal)
 
-    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), len(prompt_templates) * len(prompt_normal), 1024))
+    n_normal = normal_sentences.shape[0] // len(obj)
+    n_abnormal = abnormal_sentences.shape[0] // len(obj)
+    class_embeddings_normal = class_embeddings_normal.reshape((len(obj), n_normal, 1024))
     class_embeddings_normal = class_embeddings_normal.mean(dim=1, keepdim=True)
     class_embeddings_normal = class_embeddings_normal / class_embeddings_normal.norm(dim=-1, keepdim=True)
 
-    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), len(prompt_templates) * len(prompt_abnormal), 1024))
+    class_embeddings_abnormal = class_embeddings_abnormal.reshape((len(obj), n_abnormal, 1024))
     class_embeddings_abnormal = class_embeddings_abnormal.mean(dim=1, keepdim=True)
     class_embeddings_abnormal = class_embeddings_abnormal / class_embeddings_abnormal.norm(dim=-1, keepdim=True)
 

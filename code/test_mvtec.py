@@ -14,9 +14,10 @@ parser.add_argument("--k_shot", type=int, default=1)
 parser.add_argument("--round", type=int, default=3)
 parser.add_argument("--adapter_ckpt", type=str, default=None,
                     help="Path to adapter checkpoint (e.g. ./ckpt/train_mvtec_adapter/adapter_model.pt)")
+
 parser.add_argument("--anomalygpt_ckpt", type=str, default=None,
                     help="Override anomalygpt checkpoint path (e.g. ./ckpt/train_mvtec_blend/pytorch_model.pt)")
-
+parser.add_argument("--class_name", type=str, default=None, help="Test single class only")
 
 command_args = parser.parse_args()
 
@@ -115,7 +116,8 @@ mask_transform = transforms.Compose([
                                 transforms.ToTensor()
                             ])
 
-CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid','hazelnut', 'leather', 'metal_nut', 'pill', 'screw','tile', 'toothbrush', 'transistor', 'wood', 'zipper']
+ALL_CLASS_NAMES = ["bottle", "cable", "capsule", "carpet", "grid","hazelnut", "leather", "metal_nut", "pill", "screw","tile", "toothbrush", "transistor", "wood", "zipper"]
+CLASS_NAMES = [command_args.class_name] if command_args.class_name else ALL_CLASS_NAMES
 
 precision = []
 
