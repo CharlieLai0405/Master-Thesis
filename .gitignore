@@ -7,3 +7,5 @@ pretrained_ckpt/
 *.pt
 *.xz
 code/logs/
+__pycache__/
+*.pyc
