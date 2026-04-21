@@ -35,7 +35,7 @@ describles['pill'] = "This is a photo of a pill for anomaly detection, which sho
 describles['screw'] = "This is a photo of a screw for anomaly detection, which tail should be sharp, and without any damage, flaw, defect, scratch, hole or broken part."
 describles['tile'] = "This is a photo of tile for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
 describles['toothbrush'] = "This is a photo of a toothbrush for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['transistor'] = "This is a photo of a transistor for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
+describles["transistor"] = "This is a photo of a transistor for anomaly detection, which should have three straight parallel leads, an intact plastic case with clear markings, and correct placement orientation, without any bent leads, cut leads, damaged case, or misplacement."
 describles['wood'] = "This is a photo of wood for anomaly detection, which should be brown with patterns, without any damage, flaw, defect, scratch, hole or broken part."
 describles['zipper'] = "This is a photo of a zipper for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
 
@@ -124,7 +124,10 @@ precision = []
 for c_name in CLASS_NAMES:
     normal_img_paths = ["/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4).zfill(3)+".png", "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 1).zfill(3)+".png",
                         "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 2).zfill(3)+".png", "/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + 3).zfill(3)+".png"]
-    normal_img_paths = normal_img_paths[:command_args.k_shot]
+    # Per-class k_shot override
+    k_shot_override = {"screw": 1, "cable": 1}
+    k = k_shot_override.get(c_name, command_args.k_shot)
+    normal_img_paths = normal_img_paths[:k]
     right = 0
     wrong = 0
     p_pred = []
