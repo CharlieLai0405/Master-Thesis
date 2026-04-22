@@ -1,0 +1,67 @@
+/venv/anomaly_gpt/lib/python3.9/site-packages/deepspeed/runtime/zero/linear.py:49: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  def forward(ctx, input, weight, bias=None):
+/venv/anomaly_gpt/lib/python3.9/site-packages/deepspeed/runtime/zero/linear.py:67: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  def backward(ctx, grad_output):
+/venv/anomaly_gpt/lib/python3.9/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.9/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.9/site-packages/kornia/feature/lightglue.py:30: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:07<00:07,  7.49s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:10<00:00,  4.79s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:10<00:00,  5.19s/it]
+trainable params: 33554432 || all params: 6771970048 || trainable%: 0.49548996469513035
+Language decoder initialized.
+[!] init the 7b model over ...
+/venv/anomaly_gpt/lib/python3.9/site-packages/transformers/generation/utils.py:1255: UserWarning: You have modified the pretrained model configuration to control generation. This is a deprecated strategy to control generation and will be removed soon, in a future version. Please use a generation configuration file (see https://huggingface.co/docs/transformers/main_classes/text_generation)
+  warnings.warn(
+bottle right: 79 wrong: 4
+bottle i_AUROC: 99.52
+bottle p_AUROC: 98.03
+cable right: 128 wrong: 22
+cable i_AUROC: 89.52
+cable p_AUROC: 93.58
+capsule right: 102 wrong: 30
+capsule i_AUROC: 65.42
+capsule p_AUROC: 89.8
+carpet right: 117 wrong: 0
+carpet i_AUROC: 100.0
+carpet p_AUROC: 99.4
+grid right: 77 wrong: 1
+grid i_AUROC: 99.79
+grid p_AUROC: 97.28
+hazelnut right: 94 wrong: 16
+hazelnut i_AUROC: 99.5
+hazelnut p_AUROC: 98.88
+leather right: 122 wrong: 2
+leather i_AUROC: 99.97
+leather p_AUROC: 99.31
+metal_nut right: 111 wrong: 4
+metal_nut i_AUROC: 100.0
+metal_nut p_AUROC: 90.43
+pill right: 149 wrong: 18
+pill i_AUROC: 95.34
+pill p_AUROC: 95.96
+screw right: 114 wrong: 46
+screw i_AUROC: 77.34
+screw p_AUROC: 96.27
+tile right: 114 wrong: 3
+tile i_AUROC: 99.82
+tile p_AUROC: 95.93
+toothbrush right: 37 wrong: 5
+toothbrush i_AUROC: 97.78
+toothbrush p_AUROC: 98.44
+transistor right: 78 wrong: 22
+transistor i_AUROC: 91.88
+transistor p_AUROC: 87.85
+wood right: 74 wrong: 5
+wood i_AUROC: 99.56
+wood p_AUROC: 95.95
+zipper right: 115 wrong: 36
+zipper i_AUROC: 97.93
+zipper p_AUROC: 94.75
+i_AUROC: tensor(94.2247, dtype=torch.float64)
+p_AUROC: tensor(95.4573, dtype=torch.float64)
+precision: tensor(88.7134)
