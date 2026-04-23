@@ -101,76 +101,51 @@ class PromptLearner(nn.Module):
 # ============================================================
 class MultiScaleAnomalyFusion(nn.Module):
     """
-    自適應地聚合多層 anomaly map，取代原本的簡單平均 (torch.mean)。
+    V2: Per-pixel Layer Selection Fusion
 
-    原本的問題：
-        4 層 anomaly map 直接 torch.mean，每層權重都是 0.25。
-        但不同層捕捉的資訊不同：
-        - 淺層 (layer 7, 15)：捕捉紋理/邊緣 → 對 scratch、crack 這類缺陷有用
-        - 深層 (layer 23, 31)：捕捉語義 → 對 misplaced、wrong color 這類缺陷有用
-        不同缺陷類型需要不同層的權重組合。
+    改進重點（相比 V1）：
+        V1 問題：全局固定權重 + spatial mask，每個 pixel 用一樣的層權重
+        V2 改進：每個 pixel 獨立決定要多少淺層、多少深層資訊
+        - scratch 區域可以偏重淺層（紋理/邊緣）
+        - 語義異常區域可以偏重深層（語義理解）
 
-    改進方式：
-        1. Layer-wise attention：學習每層的全局重要性權重（softmax 確保和為 1）
-        2. Spatial refinement：用空間注意力進一步 refine 融合結果
-           （不同位置可以關注不同層的資訊）
+    架構：
+        gate network: 3 層 Conv2d，輸入 [B, n_layers, H, W]
+        輸出 per-pixel, per-layer 的 softmax 權重 [B, n_layers, H, W]
+        加權求和得到最終 anomaly map [B, 1, H, W]
 
-    參數量：約 5,000（幾乎可以忽略）
+    參數量：約 10K（仍可忽略）
     """
 
     def __init__(self, n_layers: int = 4):
-        """
-        Args:
-            n_layers: anomaly map 的層數，對應 openllama.py 中 args['layers'] 的長度。
-                      預設 4 層 (layer 7, 15, 23, 31)。
-        """
         super().__init__()
         self.n_layers = n_layers
+        hidden = n_layers * 4
 
-        # 每層一個可學習的權重，初始為均勻分佈 (1/n_layers)
-        # 訓練時透過 softmax 確保權重和為 1，可解釋性強
-        # （訓練完可以看哪層最重要）
-        self.layer_weights = nn.Parameter(torch.ones(n_layers) / n_layers)
-
-        # 空間注意力模組：
-        # 輸入所有層的 anomaly map stack [B, n_layers, 224, 224]
-        # 輸出一個空間注意力 mask [B, 1, 224, 224]
-        # 讓不同空間位置可以有不同的融合策略
-        self.spatial_attn = nn.Sequential(
-            # n_layers 個 channel → n_layers*4 個 channel，3x3 卷積捕捉局部資訊
-            nn.Conv2d(n_layers, n_layers * 4, kernel_size=3, padding=1),
-            nn.BatchNorm2d(n_layers * 4),
+        # Gate network: 從 stacked anomaly maps 學習 per-pixel layer weights
+        self.gate = nn.Sequential(
+            nn.Conv2d(n_layers, hidden, kernel_size=3, padding=1),
+            nn.BatchNorm2d(hidden),
             nn.ReLU(inplace=True),
-            # 壓回 1 個 channel，作為空間注意力權重
-            nn.Conv2d(n_layers * 4, 1, kernel_size=1),
-            # Sigmoid 確保輸出在 [0, 1] 之間
-            nn.Sigmoid()
+            nn.Conv2d(hidden, hidden, kernel_size=3, padding=1),
+            nn.BatchNorm2d(hidden),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden, n_layers, kernel_size=1),
         )
 
     def forward(self, anomaly_maps: list) -> torch.Tensor:
         """
         Args:
             anomaly_maps: list of [B, 224, 224]，長度 = n_layers
-                          每個元素是一層的 anomaly map（已經過 softmax 取 channel[1]）
 
         Returns:
             [B, 1, 224, 224]：融合後的 anomaly map
         """
-        # 把 list stack 成一個 tensor: [B, n_layers, 224, 224]
-        stacked = torch.stack(anomaly_maps, dim=1)
-
-        # Step 1: Layer-wise weighted average
-        # softmax 確保權重和為 1，梯度可以正常回傳
-        weights = F.softmax(self.layer_weights, dim=0)  # [n_layers]
-        # 廣播相乘後求和: [B, n_layers, 224, 224] * [1, n_layers, 1, 1] → sum → [B, 1, 224, 224]
-        weighted = (stacked * weights.view(1, -1, 1, 1)).sum(dim=1, keepdim=True)
-
-        # Step 2: Spatial attention refinement
-        # 讓模型學習「在哪些空間位置」需要更關注 anomaly map
-        spatial_weight = self.spatial_attn(stacked)  # [B, 1, 224, 224]
-        refined = weighted * spatial_weight  # element-wise 相乘
-
-        return refined
+        stacked = torch.stack(anomaly_maps, dim=1)        # [B, 4, 224, 224]
+        attn = self.gate(stacked)                          # [B, 4, 224, 224]
+        attn = F.softmax(attn, dim=1)                      # per-pixel softmax over layers
+        fused = (stacked * attn).sum(dim=1, keepdim=True)  # [B, 1, 224, 224]
+        return fused
 
 
 # ============================================================
