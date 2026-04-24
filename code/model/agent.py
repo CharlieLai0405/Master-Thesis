@@ -21,8 +21,8 @@ class DeepSpeedAgent:
 
         for name, param in self.model.text_adapter.named_parameters():
             param.requires_grad = True
-        for name, param in self.model.anomaly_fusion.named_parameters():
-            param.requires_grad = True
+        # for name, param in self.model.anomaly_fusion.named_parameters():
+        #     param.requires_grad = True  # disabled: Fusion removed
 
 
 

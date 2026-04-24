@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
-from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter, MultiScaleAnomalyFusion
+from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter, MultiScaleAnomalyFusion, EnhancedPromptLearner
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 from .prompts import get_prompts
@@ -201,10 +201,11 @@ class OpenLLAMAPEFTModel(nn.Module):
 
         self.image_decoder = LinearLayer(1280, 1024, 4)
 
-        self.prompt_learner = PromptLearner(1, 4096)
+        # self.prompt_learner = PromptLearner(1, 4096)  # replaced by EnhancedPromptLearner
+        self.prompt_learner = EnhancedPromptLearner(dim_in=1, dim_out=4096)
 
         self.text_adapter = TextPromptAdapter(embed_dim=1024, hidden_dim=128)
-        self.anomaly_fusion = MultiScaleAnomalyFusion(n_layers=4)
+        # self.anomaly_fusion = MultiScaleAnomalyFusion(n_layers=4)  # disabled: no improvement
 
         self.loss_focal = FocalLoss()
         self.loss_dice = BinaryDiceLoss()
@@ -495,7 +496,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             for num in range(len(anomaly_maps)):
                 anomaly_maps[num] = anomaly_maps[num][:,1,:,:]
 
-            anomaly_map_all = self.anomaly_fusion(anomaly_maps)
+            anomaly_map_all = torch.mean(torch.stack(anomaly_maps, dim=1), dim=1, keepdim=True)
 
             if random.randint(0,1) == 0 and len(inputs['img_paths']) == len(image_paths):
 
@@ -525,7 +526,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 sim = F.interpolate(sim,size=224, mode='bilinear', align_corners=True)
                 anomaly_map_all = 1 - sim # (anomaly_map_all + 1 - sim) / 2
 
-            anomaly_map_prompts = self.prompt_learner(anomaly_map_all)
+            anomaly_map_prompts = self.prompt_learner(anomaly_map_all, image_embed=img_embeds)
 
             # img_embeds = img_embeds + anomaly_map_prompts
 
@@ -582,9 +583,9 @@ class OpenLLAMAPEFTModel(nn.Module):
             for num in range(len(anomaly_maps)):
                 anomaly_maps[num] = anomaly_maps[num][:,1,:,:]
 
-            anomaly_map_all = self.anomaly_fusion(anomaly_maps)
+            anomaly_map_all = torch.mean(torch.stack(anomaly_maps, dim=1), dim=1, keepdim=True)
 
-            anomaly_map_prompts = self.prompt_learner(anomaly_map_all)
+            anomaly_map_prompts = self.prompt_learner(anomaly_map_all, image_embed=img_embeds)
 
             # img_embeds = img_embeds + anomaly_map_prompts
 
@@ -640,7 +641,7 @@ class OpenLLAMAPEFTModel(nn.Module):
                 anomaly_map = torch.softmax(anomaly_map, dim=1)
                 anomaly_maps.append(anomaly_map[:,1,:,:])
 
-            anomaly_map_ret = self.anomaly_fusion(anomaly_maps)
+            anomaly_map_ret = torch.mean(torch.stack(anomaly_maps, dim=1), dim=1, keepdim=True)
             # anomaly_map_all = anomaly_map_ret.unsqueeze(1).repeat((1,3,1,1))
             # anomaly_map_feature, _, _ = self.encode_image_from_tensor(anomaly_map_all)
             # image_embeds = anomaly_map_feature + image_embeds
@@ -700,7 +701,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         p_middle_embeds = self.llama_model.model.model.embed_tokens(p_middle_tokens.input_ids).expand(batch_size, -1, -1) # bsz x s1 x embed_dim
 
         # self.prompt_learner.eval()
-        anomaly_map_prompts = self.prompt_learner(anomaly_map)
+        anomaly_map_prompts = self.prompt_learner(anomaly_map, image_embed=feature_embeds)
 
 
 
