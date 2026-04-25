@@ -1,0 +1,69 @@
+Setting ds_accelerator to cuda (auto detect)
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:47: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @autocast_custom_fwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:66: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  @autocast_custom_bwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/transformers/deepspeed.py:23: FutureWarning: transformers.deepspeed module is deprecated and will be removed in a future version. Please import deepspeed modules directly from transformers.integrations
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/kornia/feature/lightglue.py:30: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.25s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.42s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.55s/it]
+trainable params: 33554432 || all params: 6771970048 || trainable%: 0.49548996469513035
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Language decoder initialized.
+[!] init the 7b model over ...
+bottle right: 79 wrong: 4
+bottle i_AUROC: 99.68
+bottle p_AUROC: 98.11
+cable right: 132 wrong: 18
+cable i_AUROC: 90.24
+cable p_AUROC: 93.5
+capsule right: 98 wrong: 34
+capsule i_AUROC: 64.88
+capsule p_AUROC: 90.08
+carpet right: 116 wrong: 1
+carpet i_AUROC: 99.96
+carpet p_AUROC: 99.42
+grid right: 76 wrong: 2
+grid i_AUROC: 99.5
+grid p_AUROC: 97.57
+hazelnut right: 108 wrong: 2
+hazelnut i_AUROC: 99.54
+hazelnut p_AUROC: 99.06
+leather right: 122 wrong: 2
+leather i_AUROC: 99.97
+leather p_AUROC: 99.32
+metal_nut right: 115 wrong: 0
+metal_nut i_AUROC: 100.0
+metal_nut p_AUROC: 89.55
+pill right: 139 wrong: 28
+pill i_AUROC: 95.72
+pill p_AUROC: 96.38
+screw right: 121 wrong: 39
+screw i_AUROC: 82.36
+screw p_AUROC: 97.06
+tile right: 115 wrong: 2
+tile i_AUROC: 100.0
+tile p_AUROC: 96.08
+toothbrush right: 38 wrong: 4
+toothbrush i_AUROC: 97.5
+toothbrush p_AUROC: 98.42
+transistor right: 84 wrong: 16
+transistor i_AUROC: 93.02
+transistor p_AUROC: 84.56
+wood right: 75 wrong: 4
+wood i_AUROC: 99.56
+wood p_AUROC: 95.97
+zipper right: 118 wrong: 33
+zipper i_AUROC: 98.38
+zipper p_AUROC: 95.51
+i_AUROC: tensor(94.6873, dtype=torch.float64)
+p_AUROC: tensor(95.3727, dtype=torch.float64)
+precision: tensor(90.3521)
