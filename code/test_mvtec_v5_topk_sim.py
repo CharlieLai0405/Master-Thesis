@@ -144,6 +144,39 @@ def extract_multimodal_feature_topk(self, inputs, web_demo):
 model.extract_multimodal_feature = types.MethodType(extract_multimodal_feature_topk, model)
 print(f'[!] Monkey-patched extract_multimodal_feature with top-{TOPK} similarity')
 
+def select_spread_references(all_paths, n_refs, model_ref):
+    if len(all_paths) <= n_refs:
+        return all_paths
+    from model.ImageBind import data as ib_data2
+    batch_size = 16
+    all_features = []
+    for i in range(0, len(all_paths), batch_size):
+        batch_paths = all_paths[i:i+batch_size]
+        inputs = {ModalityType.VISION: ib_data2.load_and_transform_vision_data(batch_paths, 'cuda')}
+        inputs = {key: inputs[key].to(model_ref.llama_model.dtype) for key in inputs}
+        with torch.no_grad():
+            embeddings = model_ref.visual_encoder(inputs)
+            cls_features = embeddings['vision'][0]
+        all_features.append(cls_features)
+    all_features = torch.cat(all_features, dim=0)
+    all_features = F.normalize(all_features, dim=-1)
+    mean_feat = all_features.mean(dim=0, keepdim=True)
+    mean_feat = F.normalize(mean_feat, dim=-1)
+    dists_to_mean = 1 - (all_features @ mean_feat.T).squeeze()
+    first_idx = dists_to_mean.argmin().item()
+    selected = [first_idx]
+    for _ in range(n_refs - 1):
+        selected_feats = all_features[selected]
+        sims = all_features @ selected_feats.T
+        max_sims, _ = sims.max(dim=1)
+        for idx in selected:
+            max_sims[idx] = 999
+        next_idx = max_sims.argmin().item()
+        selected.append(next_idx)
+    selected_paths = [all_paths[i] for i in selected]
+    print(f"    Selected refs: {[os.path.basename(p) for p in selected_paths]}")
+    return selected_paths
+
 # === Standard test loop (same as original) ===
 p_auc_list = []
 i_auc_list = []
@@ -178,10 +211,19 @@ CLASS_NAMES = [command_args.class_name] if command_args.class_name else ALL_CLAS
 precision = []
 
 for c_name in CLASS_NAMES:
-    normal_img_paths = ["/workspace/Master-Thesis/data/mvtec_anomaly_detection/"+c_name+"/train/good/"+str(command_args.round * 4 + i).zfill(3)+".png" for i in range(4)]
+    # Hybrid selection: spread for improved classes, original for others
+    SPREAD_CLASSES = {"capsule", "cable", "toothbrush", "grid", "hazelnut"}
+    normal_dir = f"/workspace/Master-Thesis/data/mvtec_anomaly_detection/{c_name}/train/good/"
     k_shot_override = {"screw": 1, "cable": 1}
     k = k_shot_override.get(c_name, command_args.k_shot)
-    normal_img_paths = normal_img_paths[:k]
+    if c_name in SPREAD_CLASSES:
+        import glob
+        all_normal_paths = sorted(glob.glob(os.path.join(normal_dir, "*.png")))
+        normal_img_paths = select_spread_references(all_normal_paths, max(k, 4), model)[:k]
+        print(f"    [{c_name}] Using SPREAD selection")
+    else:
+        normal_img_paths = [normal_dir + str(command_args.round * 4 + i).zfill(3) + ".png" for i in range(4)][:k]
+        print(f"    [{c_name}] Using ORIGINAL selection")
 
     right, wrong = 0, 0
     p_pred, p_label, i_pred, i_label = [], [], [], []
