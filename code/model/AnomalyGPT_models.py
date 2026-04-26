@@ -92,3 +92,37 @@ class PromptLearner(nn.Module):
         img_prompts = img_prompts.reshape(B,4096,9).transpose(-2,-1)
         output = torch.cat([self.base_prompts.expand(B,-1,-1), img_prompts], dim=1)
         return output
+
+
+class ScoreEncoder(nn.Module):
+    """Encode anomaly score (scalar) into an embedding token for LLM injection.
+    
+    Maps a single anomaly score value to a 4096-dim embedding that can be
+    concatenated with other prompt tokens in the LLM input sequence.
+    Zero-initialized output layer so the module starts as near-zero,
+    minimizing disruption when fine-tuning from existing checkpoint.
+    """
+
+    def __init__(self, dim_out: int = 4096, hidden_dim: int = 256):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, dim_out),
+        )
+        # Zero-init last layer for stable fine-tuning from existing checkpoint
+        nn.init.zeros_(self.net[-1].weight)
+        nn.init.zeros_(self.net[-1].bias)
+
+    def forward(self, score: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            score: [B] or [B, 1] - anomaly score per image
+        Returns:
+            [B, 1, dim_out] - score embedding token
+        """
+        if score.dim() == 1:
+            score = score.unsqueeze(-1)  # [B] -> [B, 1]
+        return self.net(score).unsqueeze(1)  # [B, 1, dim_out]

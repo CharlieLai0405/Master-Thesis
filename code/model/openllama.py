@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
-from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter
+from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter, ScoreEncoder
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 from .prompts import get_prompts
@@ -202,6 +202,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         self.image_decoder = LinearLayer(1280, 1024, 4)
 
         self.prompt_learner = PromptLearner(1, 4096)
+        self.score_encoder = ScoreEncoder(dim_out=4096, hidden_dim=256)
 
         self.text_adapter = TextPromptAdapter(embed_dim=1024, hidden_dim=128)
 
@@ -525,6 +526,11 @@ class OpenLLAMAPEFTModel(nn.Module):
                 anomaly_map_all = 1 - sim # (anomaly_map_all + 1 - sim) / 2
 
             anomaly_map_prompts = self.prompt_learner(anomaly_map_all)
+            # Score injection: encode anomaly score as embedding token
+            anomaly_score = anomaly_map_all.detach().reshape(anomaly_map_all.shape[0], -1).max(dim=-1).values  # [B]
+            score_token = self.score_encoder(anomaly_score)  # [B, 1, 4096]
+            anomaly_map_prompts = torch.cat([score_token, anomaly_map_prompts], dim=1)  # prepend score token
+
 
             # img_embeds = img_embeds + anomaly_map_prompts
 
@@ -584,6 +590,11 @@ class OpenLLAMAPEFTModel(nn.Module):
             anomaly_map_all = torch.mean(torch.stack(anomaly_maps, dim=1), dim=1, keepdim=True)
 
             anomaly_map_prompts = self.prompt_learner(anomaly_map_all)
+            # Score injection: encode anomaly score as embedding token
+            anomaly_score = anomaly_map_all.detach().reshape(anomaly_map_all.shape[0], -1).max(dim=-1).values  # [B]
+            score_token = self.score_encoder(anomaly_score)  # [B, 1, 4096]
+            anomaly_map_prompts = torch.cat([score_token, anomaly_map_prompts], dim=1)  # prepend score token
+
 
             # img_embeds = img_embeds + anomaly_map_prompts
 
@@ -700,6 +711,11 @@ class OpenLLAMAPEFTModel(nn.Module):
 
         # self.prompt_learner.eval()
         anomaly_map_prompts = self.prompt_learner(anomaly_map)
+        # Score injection: encode anomaly score as embedding token
+        anomaly_score = anomaly_map.detach().reshape(anomaly_map.shape[0], -1).max(dim=-1).values  # [B]
+        score_token = self.score_encoder(anomaly_score)  # [B, 1, 4096]
+        anomaly_map_prompts = torch.cat([score_token, anomaly_map_prompts], dim=1)  # prepend score token
+
 
 
 
