@@ -1,0 +1,117 @@
+Setting ds_accelerator to cuda (auto detect)
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:47: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @autocast_custom_fwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:66: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  @autocast_custom_bwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/transformers/deepspeed.py:23: FutureWarning: transformers.deepspeed module is deprecated and will be removed in a future version. Please import deepspeed modules directly from transformers.integrations
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/kornia/feature/lightglue.py:30: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+[!] Using prompt variant 1: class-aware
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.62s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.72s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.86s/it]
+trainable params: 33554432 || all params: 6771970048 || trainable%: 0.49548996469513035
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Language decoder initialized.
+[!] init the 7b model over ...
+
+[*] Processing bottle...
+bottle right: 76 wrong: 7
+bottle i_AUROC: 99.92
+bottle p_AUROC: 98.28
+bottle precision: 91.57
+
+[*] Processing cable...
+cable right: 130 wrong: 20
+cable i_AUROC: 91.63
+cable p_AUROC: 93.48
+cable precision: 86.67
+
+[*] Processing capsule...
+capsule right: 100 wrong: 32
+capsule i_AUROC: 89.05
+capsule p_AUROC: 95.63
+capsule precision: 75.76
+
+[*] Processing carpet...
+carpet right: 115 wrong: 2
+carpet i_AUROC: 100.0
+carpet p_AUROC: 99.53
+carpet precision: 98.29
+
+[*] Processing grid...
+grid right: 75 wrong: 3
+grid i_AUROC: 100.0
+grid p_AUROC: 98.53
+grid precision: 96.15
+
+[*] Processing hazelnut...
+hazelnut right: 110 wrong: 0
+hazelnut i_AUROC: 99.96
+hazelnut p_AUROC: 99.0
+hazelnut precision: 100.0
+
+[*] Processing leather...
+leather right: 122 wrong: 2
+leather i_AUROC: 99.97
+leather p_AUROC: 99.35
+leather precision: 98.39
+
+[*] Processing metal_nut...
+metal_nut right: 115 wrong: 0
+metal_nut i_AUROC: 100.0
+metal_nut p_AUROC: 91.62
+metal_nut precision: 100.0
+
+[*] Processing pill...
+pill right: 137 wrong: 30
+pill i_AUROC: 96.71
+pill p_AUROC: 97.34
+pill precision: 82.04
+
+[*] Processing screw...
+screw right: 117 wrong: 43
+screw i_AUROC: 81.38
+screw p_AUROC: 97.58
+screw precision: 73.12
+
+[*] Processing tile...
+tile right: 115 wrong: 2
+tile i_AUROC: 99.96
+tile p_AUROC: 96.95
+tile precision: 98.29
+
+[*] Processing toothbrush...
+toothbrush right: 40 wrong: 2
+toothbrush i_AUROC: 99.72
+toothbrush p_AUROC: 98.75
+toothbrush precision: 95.24
+
+[*] Processing transistor...
+transistor right: 80 wrong: 20
+transistor i_AUROC: 96.17
+transistor p_AUROC: 86.89
+transistor precision: 80.0
+
+[*] Processing wood...
+wood right: 76 wrong: 3
+wood i_AUROC: 99.82
+wood p_AUROC: 96.67
+wood precision: 96.2
+
+[*] Processing zipper...
+zipper right: 104 wrong: 47
+zipper i_AUROC: 98.77
+zipper p_AUROC: 95.67
+zipper precision: 68.87
+
+i_AUROC: 96.87066666666666
+p_AUROC: 96.35133333333333
+precision: 89.37266540527344
+prompt_variant: 1 (class-aware)

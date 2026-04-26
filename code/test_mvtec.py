@@ -139,9 +139,9 @@ for c_name in CLASS_NAMES:
             file_path = os.path.join(root, file)
             if "test" in file_path and 'png' in file and c_name in file_path:
                 if FEW_SHOT:
-                    resp, anomaly_map = predict(describles[c_name] + ' ' + input, file_path, normal_img_paths, 512, 0.1, 1.0, [], [])
+                    resp, anomaly_map = predict(f"This is a {c_name.replace('_', ' ')}. {describles[c_name]} Is there any anomaly in the image?", file_path, normal_img_paths, 512, 0.1, 1.0, [], [])
                 else:
-                    resp, anomaly_map = predict(describles[c_name] + ' ' + input, file_path, [], 512, 0.1, 1.0, [], [])
+                    resp, anomaly_map = predict(f"This is a {c_name.replace('_', ' ')}. {describles[c_name]} Is there any anomaly in the image?", file_path, [], 512, 0.1, 1.0, [], [])
                 is_normal = 'good' in file_path.split('/')[-2]
 
                 if is_normal:
