@@ -1,0 +1,89 @@
+Setting ds_accelerator to cuda (auto detect)
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:47: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @autocast_custom_fwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:66: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  @autocast_custom_bwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/transformers/deepspeed.py:23: FutureWarning: transformers.deepspeed module is deprecated and will be removed in a future version. Please import deepspeed modules directly from transformers.integrations
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/kornia/feature/lightglue.py:30: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.17s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.40s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.52s/it]
+trainable params: 33554432 || all params: 6771970048 || trainable%: 0.49548996469513035
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Language decoder initialized.
+[!] init the 7b model over ...
+    [bottle] Using ORIGINAL selection
+bottle right: 76 wrong: 7
+bottle i_AUROC: 100.0
+bottle p_AUROC: 98.43
+    Selected refs: ['059.png', '124.png', '071.png', '057.png']
+    [cable] Using SPREAD selection
+cable right: 130 wrong: 20
+cable i_AUROC: 93.42
+cable p_AUROC: 94.16
+    Selected refs: ['191.png', '090.png', '209.png', '001.png']
+    [capsule] Using SPREAD selection
+capsule right: 100 wrong: 32
+capsule i_AUROC: 88.27
+capsule p_AUROC: 96.3
+    [carpet] Using ORIGINAL selection
+carpet right: 115 wrong: 2
+carpet i_AUROC: 100.0
+carpet p_AUROC: 99.58
+    Selected refs: ['011.png', '067.png', '089.png', '069.png']
+    [grid] Using SPREAD selection
+grid right: 75 wrong: 3
+grid i_AUROC: 100.0
+grid p_AUROC: 98.54
+    Selected refs: ['119.png', '203.png', '094.png', '129.png']
+    [hazelnut] Using SPREAD selection
+hazelnut right: 110 wrong: 0
+hazelnut i_AUROC: 100.0
+hazelnut p_AUROC: 99.08
+    [leather] Using ORIGINAL selection
+leather right: 122 wrong: 2
+leather i_AUROC: 100.0
+leather p_AUROC: 99.36
+    [metal_nut] Using ORIGINAL selection
+metal_nut right: 115 wrong: 0
+metal_nut i_AUROC: 100.0
+metal_nut p_AUROC: 92.18
+    [pill] Using ORIGINAL selection
+pill right: 137 wrong: 30
+pill i_AUROC: 96.18
+pill p_AUROC: 97.59
+    [screw] Using ORIGINAL selection
+screw right: 117 wrong: 43
+screw i_AUROC: 78.75
+screw p_AUROC: 97.55
+    [tile] Using ORIGINAL selection
+tile right: 115 wrong: 2
+tile i_AUROC: 99.96
+tile p_AUROC: 97.29
+    Selected refs: ['005.png', '057.png', '032.png', '009.png']
+    [toothbrush] Using SPREAD selection
+toothbrush right: 40 wrong: 2
+toothbrush i_AUROC: 99.44
+toothbrush p_AUROC: 98.88
+    [transistor] Using ORIGINAL selection
+transistor right: 80 wrong: 20
+transistor i_AUROC: 95.67
+transistor p_AUROC: 88.02
+    [wood] Using ORIGINAL selection
+wood right: 76 wrong: 3
+wood i_AUROC: 99.39
+wood p_AUROC: 96.89
+    [zipper] Using ORIGINAL selection
+zipper right: 104 wrong: 47
+zipper i_AUROC: 99.13
+zipper p_AUROC: 96.36
+i_AUROC: tensor(96.6807, dtype=torch.float64)
+p_AUROC: tensor(96.6807, dtype=torch.float64)
+precision: tensor(89.3726)
