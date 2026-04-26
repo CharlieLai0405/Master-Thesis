@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
-from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter  # MultiScaleAnomalyFusion, EnhancedPromptLearner removed: no AUROC improvement
+from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 from .prompts import get_prompts
@@ -202,10 +202,8 @@ class OpenLLAMAPEFTModel(nn.Module):
         self.image_decoder = LinearLayer(1280, 1024, 4)
 
         self.prompt_learner = PromptLearner(1, 4096)
-        # self.prompt_learner = EnhancedPromptLearner(dim_in=1, dim_out=4096)  # disabled: no AUROC improvement
 
         self.text_adapter = TextPromptAdapter(embed_dim=1024, hidden_dim=128)
-        # self.anomaly_fusion = MultiScaleAnomalyFusion(n_layers=4)  # disabled: no improvement
 
         self.loss_focal = FocalLoss()
         self.loss_dice = BinaryDiceLoss()

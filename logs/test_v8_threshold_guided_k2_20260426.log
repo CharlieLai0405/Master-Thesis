@@ -1,0 +1,151 @@
+Setting ds_accelerator to cuda (auto detect)
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:47: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @autocast_custom_fwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:66: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  @autocast_custom_bwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/transformers/deepspeed.py:23: FutureWarning: transformers.deepspeed module is deprecated and will be removed in a future version. Please import deepspeed modules directly from transformers.integrations
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/kornia/feature/lightglue.py:30: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:01<00:01,  2.00s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.26s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.37s/it]
+trainable params: 33554432 || all params: 6771970048 || trainable%: 0.49548996469513035
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Language decoder initialized.
+==================================================
+Phase 1: Calculating per-class optimal thresholds
+==================================================
+bottle: threshold=0.4492, precision_threshold=100.00, accuracy=97.59
+    Selected refs: ['059.png', '124.png', '071.png', '057.png']
+cable: threshold=0.5142, precision_threshold=97.44, accuracy=88.00
+    Selected refs: ['191.png', '090.png', '209.png', '001.png']
+capsule: threshold=0.4604, precision_threshold=97.70, accuracy=80.30
+carpet: threshold=0.4871, precision_threshold=100.00, accuracy=99.15
+    Selected refs: ['011.png', '067.png', '089.png', '069.png']
+grid: threshold=0.5181, precision_threshold=100.00, accuracy=97.44
+    Selected refs: ['119.png', '203.png', '094.png', '129.png']
+hazelnut: threshold=0.5459, precision_threshold=100.00, accuracy=98.18
+leather: threshold=0.6177, precision_threshold=100.00, accuracy=99.19
+metal_nut: threshold=0.4929, precision_threshold=100.00, accuracy=99.13
+pill: threshold=0.4810, precision_threshold=100.00, accuracy=88.62
+screw: threshold=0.4424, precision_threshold=90.29, accuracy=77.50
+tile: threshold=0.5259, precision_threshold=100.00, accuracy=99.15
+    Selected refs: ['005.png', '057.png', '032.png', '009.png']
+toothbrush: threshold=0.5161, precision_threshold=100.00, accuracy=97.62
+transistor: threshold=0.4424, precision_threshold=97.14, accuracy=93.00
+wood: threshold=0.6182, precision_threshold=100.00, accuracy=96.20
+zipper: threshold=0.3840, precision_threshold=100.00, accuracy=93.38
+
+Thresholds saved to /tmp/v8_thresholds.json
+{
+  "bottle": 0.44921875,
+  "cable": 0.51416015625,
+  "capsule": 0.46044921875,
+  "carpet": 0.487060546875,
+  "grid": 0.51806640625,
+  "hazelnut": 0.5458984375,
+  "leather": 0.61767578125,
+  "metal_nut": 0.492919921875,
+  "pill": 0.48095703125,
+  "screw": 0.4423828125,
+  "tile": 0.52587890625,
+  "toothbrush": 0.51611328125,
+  "transistor": 0.4423828125,
+  "wood": 0.6181640625,
+  "zipper": 0.384033203125
+}
+
+==================================================
+Phase 2: Testing with threshold-guided prompt
+==================================================
+    [bottle] Using ORIGINAL selection
+bottle i_AUROC: 99.92
+bottle p_AUROC: 98.34
+bottle precision_LLM_guided: 91.57
+bottle precision_threshold: 97.59 (threshold=0.4492)
+    Selected refs: ['059.png', '124.png', '071.png', '057.png']
+    [cable] Using SPREAD selection
+cable i_AUROC: 92.4
+cable p_AUROC: 93.88
+cable precision_LLM_guided: 86.00
+cable precision_threshold: 88.00 (threshold=0.5142)
+    Selected refs: ['191.png', '090.png', '209.png', '001.png']
+    [capsule] Using SPREAD selection
+capsule i_AUROC: 89.97
+capsule p_AUROC: 95.95
+capsule precision_LLM_guided: 75.00
+capsule precision_threshold: 80.30 (threshold=0.4604)
+    [carpet] Using ORIGINAL selection
+carpet i_AUROC: 100.0
+carpet p_AUROC: 99.55
+carpet precision_LLM_guided: 98.29
+carpet precision_threshold: 99.15 (threshold=0.4871)
+    Selected refs: ['011.png', '067.png', '089.png', '069.png']
+    [grid] Using SPREAD selection
+grid i_AUROC: 99.83
+grid p_AUROC: 98.6
+grid precision_LLM_guided: 97.44
+grid precision_threshold: 97.44 (threshold=0.5181)
+    Selected refs: ['119.png', '203.png', '094.png', '129.png']
+    [hazelnut] Using SPREAD selection
+hazelnut i_AUROC: 99.96
+hazelnut p_AUROC: 99.02
+hazelnut precision_LLM_guided: 100.00
+hazelnut precision_threshold: 98.18 (threshold=0.5459)
+    [leather] Using ORIGINAL selection
+leather i_AUROC: 100.0
+leather p_AUROC: 99.37
+leather precision_LLM_guided: 98.39
+leather precision_threshold: 99.19 (threshold=0.6177)
+    [metal_nut] Using ORIGINAL selection
+metal_nut i_AUROC: 100.0
+metal_nut p_AUROC: 92.56
+metal_nut precision_LLM_guided: 98.26
+metal_nut precision_threshold: 99.13 (threshold=0.4929)
+    [pill] Using ORIGINAL selection
+pill i_AUROC: 96.82
+pill p_AUROC: 97.39
+pill precision_LLM_guided: 83.23
+pill precision_threshold: 88.62 (threshold=0.4810)
+    [screw] Using ORIGINAL selection
+screw i_AUROC: 81.19
+screw p_AUROC: 97.53
+screw precision_LLM_guided: 77.50
+screw precision_threshold: 77.50 (threshold=0.4424)
+    [tile] Using ORIGINAL selection
+tile i_AUROC: 100.0
+tile p_AUROC: 97.15
+tile precision_LLM_guided: 98.29
+tile precision_threshold: 99.15 (threshold=0.5259)
+    Selected refs: ['005.png', '057.png', '032.png', '009.png']
+    [toothbrush] Using SPREAD selection
+toothbrush i_AUROC: 100.0
+toothbrush p_AUROC: 98.77
+toothbrush precision_LLM_guided: 90.48
+toothbrush precision_threshold: 97.62 (threshold=0.5161)
+    [transistor] Using ORIGINAL selection
+transistor i_AUROC: 97.29
+transistor p_AUROC: 87.28
+transistor precision_LLM_guided: 79.00
+transistor precision_threshold: 93.00 (threshold=0.4424)
+    [wood] Using ORIGINAL selection
+wood i_AUROC: 99.82
+wood p_AUROC: 96.61
+wood precision_LLM_guided: 94.94
+wood precision_threshold: 96.20 (threshold=0.6182)
+    [zipper] Using ORIGINAL selection
+zipper i_AUROC: 99.11
+zipper p_AUROC: 96.21
+zipper precision_LLM_guided: 74.17
+zipper precision_threshold: 93.38 (threshold=0.3840)
+
+i_AUROC: 97.08733333333333
+p_AUROC: 96.54733333333334
+precision_LLM_guided: 89.50332641601562
+precision_threshold: 93.62983703613281
