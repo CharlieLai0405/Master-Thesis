@@ -26,6 +26,58 @@ class TextPromptAdapter(nn.Module):
         return x + self.scale * self.up_proj(self.act(self.down_proj(x)))
 
 
+
+
+class VisualPatchAdapter(nn.Module):
+    """Learnable residual adapter for ImageBind visual patch features.
+    
+    Applied to each of the 4 intermediate layer outputs (patch_features)
+    before they enter the image_decoder. Same design as TextPromptAdapter
+    but for visual features (dim=1280).
+    
+    Architecture: down_proj(1280->160) -> GELU -> up_proj(160->1280) + residual
+    Zero-init up_proj so adapter starts as identity.
+    Per-layer independent adapters for scale-specific adaptation.
+    
+    Total params: ~1.6M (4 layers x ~410K each), negligible vs full model.
+    """
+    
+    def __init__(self, n_layers: int = 4, embed_dim: int = 1280, hidden_dim: int = 160, scale_init: float = 0.1):
+        super().__init__()
+        self.adapters = nn.ModuleList([
+            self._make_adapter(embed_dim, hidden_dim, scale_init)
+            for _ in range(n_layers)
+        ])
+    
+    @staticmethod
+    def _make_adapter(embed_dim, hidden_dim, scale_init):
+        adapter = nn.Module()
+        adapter.down_proj = nn.Linear(embed_dim, hidden_dim)
+        adapter.act = nn.GELU()
+        adapter.up_proj = nn.Linear(hidden_dim, embed_dim)
+        adapter.scale = nn.Parameter(torch.tensor(scale_init))
+        nn.init.zeros_(adapter.up_proj.weight)
+        nn.init.zeros_(adapter.up_proj.bias)
+        # Use a simple Sequential-like wrapper
+        return adapter
+    
+    def forward(self, patch_features: list) -> list:
+        """
+        Args:
+            patch_features: list of 4 tensors, each [B, seq_len, 1280] or [seq_len, B, 1280]
+        Returns:
+            Adapted patch_features (same shapes)
+        """
+        adapted = []
+        for i, (feat, adapter) in enumerate(zip(patch_features, self.adapters)):
+            residual = feat
+            x = adapter.down_proj(feat)
+            x = adapter.act(x)
+            x = adapter.up_proj(x)
+            adapted.append(residual + adapter.scale * x)
+        return adapted
+
+
 class Normalize(nn.Module):
     def __init__(self, dim: int) -> None:
         super().__init__()
@@ -36,31 +88,18 @@ class Normalize(nn.Module):
 
     
 class LinearLayer(nn.Module):
-    """Enhanced Image Decoder: 2-layer MLP with GELU, residual connection, and LayerNorm.
-    
-    Original: single Linear(dim_in, dim_out) per layer.
-    Enhanced: Linear(dim_in, dim_out) -> GELU -> Linear(dim_out, dim_out) + residual -> LayerNorm
-    
-    Improves patch_tokens quality for better anomaly map discrimination,
-    especially for hard categories (screw, capsule) where score overlap is severe.
-    """
     def __init__(self, dim_in, dim_out, k):
         super(LinearLayer, self).__init__()
-        self.fc1 = nn.ModuleList([nn.Linear(dim_in, dim_out) for i in range(k)])
-        self.fc2 = nn.ModuleList([nn.Linear(dim_out, dim_out) for i in range(k)])
-        self.act = nn.GELU()
-        self.norm = nn.ModuleList([nn.LayerNorm(dim_out) for i in range(k)])
+        self.fc = nn.ModuleList([nn.Linear(dim_in, dim_out) for i in range(k)])
 
     def forward(self, tokens):
         for i in range(len(tokens)):
             if len(tokens[i].shape) == 3:
                 tokens[i] = tokens[i].transpose(0,1)
-                x = tokens[i][:, 1:, :]
+                tokens[i] = self.fc[i](tokens[i][:, 1:, :])
             else:
                 B, C, H, W = tokens[i].shape
-                x = tokens[i].view(B, C, -1).permute(0, 2, 1).contiguous()
-            residual = self.fc1[i](x)
-            tokens[i] = self.norm[i](residual + self.fc2[i](self.act(residual)))
+                tokens[i] = self.fc[i](tokens[i].view(B, C, -1).permute(0, 2, 1).contiguous())
         return tokens
     
 class PromptLearner(nn.Module):
