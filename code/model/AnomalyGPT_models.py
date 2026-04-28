@@ -36,18 +36,31 @@ class Normalize(nn.Module):
 
     
 class LinearLayer(nn.Module):
+    """Enhanced Image Decoder: 2-layer MLP with GELU, residual connection, and LayerNorm.
+    
+    Original: single Linear(dim_in, dim_out) per layer.
+    Enhanced: Linear(dim_in, dim_out) -> GELU -> Linear(dim_out, dim_out) + residual -> LayerNorm
+    
+    Improves patch_tokens quality for better anomaly map discrimination,
+    especially for hard categories (screw, capsule) where score overlap is severe.
+    """
     def __init__(self, dim_in, dim_out, k):
         super(LinearLayer, self).__init__()
-        self.fc = nn.ModuleList([nn.Linear(dim_in, dim_out) for i in range(k)])
+        self.fc1 = nn.ModuleList([nn.Linear(dim_in, dim_out) for i in range(k)])
+        self.fc2 = nn.ModuleList([nn.Linear(dim_out, dim_out) for i in range(k)])
+        self.act = nn.GELU()
+        self.norm = nn.ModuleList([nn.LayerNorm(dim_out) for i in range(k)])
 
     def forward(self, tokens):
         for i in range(len(tokens)):
             if len(tokens[i].shape) == 3:
                 tokens[i] = tokens[i].transpose(0,1)
-                tokens[i] = self.fc[i](tokens[i][:, 1:, :])
+                x = tokens[i][:, 1:, :]
             else:
                 B, C, H, W = tokens[i].shape
-                tokens[i] = self.fc[i](tokens[i].view(B, C, -1).permute(0, 2, 1).contiguous())
+                x = tokens[i].view(B, C, -1).permute(0, 2, 1).contiguous()
+            residual = self.fc1[i](x)
+            tokens[i] = self.norm[i](residual + self.fc2[i](self.act(residual)))
         return tokens
     
 class PromptLearner(nn.Module):
