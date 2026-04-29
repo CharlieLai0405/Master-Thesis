@@ -234,6 +234,11 @@ class OpenLLAMAPEFTModel(nn.Module):
         self.llama_model = get_peft_model(self.llama_model, peft_config)
         self.llama_model.print_trainable_parameters()
 
+        # Ensure visual_adapter is trainable (fix: LoRA freezes non-LLM params)
+        self.visual_adapter.requires_grad_(True)
+        va_params = sum(p.numel() for p in self.visual_adapter.parameters() if p.requires_grad)
+        print(f"[CHECK] VisualPatchAdapter trainable params: {va_params}")
+
         self.llama_tokenizer = LlamaTokenizer.from_pretrained(vicuna_ckpt_path, use_fast=False)
         self.llama_tokenizer.pad_token = self.llama_tokenizer.eos_token
         self.llama_tokenizer.padding_side = "right"
