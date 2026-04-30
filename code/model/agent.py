@@ -21,6 +21,9 @@ class DeepSpeedAgent:
 
         for name, param in self.model.text_adapter.named_parameters():
             param.requires_grad = True
+
+        for name, param in self.model.visual_adapter.named_parameters():
+            param.requires_grad = True
         # for name, param in self.model.anomaly_fusion.named_parameters():
         #     param.requires_grad = True  # disabled: Fusion removed
 
@@ -74,6 +77,13 @@ class DeepSpeedAgent:
         for k, v in self.ds_engine.module.named_parameters():
             if v.requires_grad:
                 checkpoint[k] = v.data.cpu().clone()
+        # Force-save visual_adapter even if DS changed requires_grad
+        for k, v in self.ds_engine.module.named_parameters():
+            if "visual_adapter" in k and k not in checkpoint:
+                checkpoint[k] = v.data.cpu().clone()
+                print(f"[SAVE-FIX] Force-saving {k} (requires_grad={v.requires_grad})")
+        va_keys = [k for k in checkpoint if "visual_adapter" in k]
+        print(f"[SAVE] Total keys: {len(checkpoint)}, visual_adapter keys: {va_keys}")
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
         torch.save(checkpoint, f'{path}/pytorch_model.pt')
