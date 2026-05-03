@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from .ImageBind import *
 from .ImageBind import data
 from .modeling_llama import LlamaForCausalLM
-from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter  # MultiScaleAnomalyFusion, EnhancedPromptLearner removed: no AUROC improvement
+from .AnomalyGPT_models import LinearLayer, PromptLearner, TextPromptAdapter, VisualPatchAdapter  # MultiScaleAnomalyFusion, EnhancedPromptLearner removed: no AUROC improvement
 from transformers import StoppingCriteria, StoppingCriteriaList, LlamaTokenizer, LlamaForCausalLM
 from utils.loss import FocalLoss, BinaryDiceLoss
 from .prompts import get_prompts
@@ -205,6 +205,7 @@ class OpenLLAMAPEFTModel(nn.Module):
         # self.prompt_learner = EnhancedPromptLearner(dim_in=1, dim_out=4096)  # disabled: no AUROC improvement
 
         self.text_adapter = TextPromptAdapter(embed_dim=1024, hidden_dim=128)
+        self.patch_adapter = VisualPatchAdapter(embed_dim=1024, hidden_dim=256)
         # self.anomaly_fusion = MultiScaleAnomalyFusion(n_layers=4)  # disabled: no improvement
 
         self.loss_focal = FocalLoss()
@@ -294,7 +295,8 @@ class OpenLLAMAPEFTModel(nn.Module):
             embeddings = self.visual_encoder(inputs)
             image_embeds = embeddings['vision'][0] # bsz x 1024
             patch_features = embeddings['vision'][1] # bsz x h*w x 1280
-        patch_tokens = self.image_decoder(patch_features) # bsz x h*w x 1024
+        patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens] # bsz x h*w x 1024
 
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size
         atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(self.device) # bsz x 1
@@ -308,7 +310,8 @@ class OpenLLAMAPEFTModel(nn.Module):
             embeddings = self.visual_encoder(inputs)
             image_embeds = embeddings['vision'][0] # bsz x 1024
             patch_features = embeddings['vision'][1] # bsz x h*w x 1280
-        patch_tokens = self.image_decoder(patch_features) # bsz x h*w x 1024
+        patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens] # bsz x h*w x 1024
 
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size
         atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(self.device) # bsz x 1
@@ -377,6 +380,7 @@ class OpenLLAMAPEFTModel(nn.Module):
             image_embeds = embeddings['vision'][0] # bsz x 1024
             patch_features = embeddings['vision'][1] # bsz x h*w x 1024
         patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens]
 
 
         inputs_llama = self.llama_proj(image_embeds).unsqueeze(1) # bsz x 1 x llama_size

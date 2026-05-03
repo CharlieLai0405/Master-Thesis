@@ -1,0 +1,328 @@
+Setting ds_accelerator to cuda (auto detect)
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:47: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  @autocast_custom_fwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/deepspeed/runtime/zero/linear.py:66: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  @autocast_custom_bwd
+/venv/anomaly_gpt/lib/python3.12/site-packages/transformers/deepspeed.py:23: FutureWarning: transformers.deepspeed module is deprecated and will be removed in a future version. Please import deepspeed modules directly from transformers.integrations
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_functional_video.py:6: UserWarning: The 'torchvision.transforms._functional_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms.functional' module instead.
+  warnings.warn(
+/venv/anomaly_gpt/lib/python3.12/site-packages/torchvision/transforms/_transforms_video.py:22: UserWarning: The 'torchvision.transforms._transforms_video' module is deprecated since 0.12 and will be removed in the future. Please use the 'torchvision.transforms' module instead.
+  warnings.warn(
+Initializing visual encoder from ../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth ...
+Visual encoder initialized.
+Initializing language decoder from ../pretrained_ckpt/vicuna_ckpt/7b_v0 ...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.09s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.30s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:02<00:00,  1.42s/it]
+trainable params: 33,554,432 || all params: 6,771,970,048 || trainable%: 0.49548996469513035
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+Language decoder initialized.
+[!] Model loaded
+
+=== bottle ===
+    Using ORIGINAL selection
+  50/83 done
+
+  bottle results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.84    98.31   +0.00   +0.00
+  B_topk3            100.00    98.18   +0.16   -0.13
+  B_topk5            100.00    98.07   +0.16   -0.24
+  B_topk10            99.72    97.85   -0.12   -0.46
+  C_wt_late           99.44    98.04   -0.40   -0.27
+  C_wt_early         100.00    98.47   +0.16   +0.16
+  D_exp5              99.84    98.31   +0.00   -0.00
+  D_exp10             99.88    98.31   +0.04   -0.00
+  D_exp20             97.50    98.10   -2.34   -0.21
+  E_combined          99.37    97.83   -0.48   -0.48
+
+=== cable ===
+    Selected refs: ['059.png', '124.png', '071.png', '057.png']
+    Using SPREAD selection
+  50/150 done
+  100/150 done
+  150/150 done
+
+  cable results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          92.19    92.91   +0.00   +0.00
+  B_topk3             92.05    92.43   -0.14   -0.48
+  B_topk5             91.51    92.21   -0.68   -0.71
+  B_topk10            91.10    92.08   -1.10   -0.83
+  C_wt_late           91.31    91.68   -0.88   -1.23
+  C_wt_early          92.19    93.68   +0.00   +0.77 <--
+  D_exp5              92.17    92.91   -0.03   -0.00
+  D_exp10             92.18    92.91   -0.02   -0.00
+  D_exp20             54.31    92.49  -37.88   -0.42
+  E_combined          90.76    91.11   -1.43   -1.81
+
+=== capsule ===
+    Selected refs: ['191.png', '090.png', '209.png', '001.png']
+    Using SPREAD selection
+  50/132 done
+  100/132 done
+
+  capsule results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          88.47    92.89   +0.00   +0.00
+  B_topk3             88.27    93.92   -0.20   +1.03 <--
+  B_topk5             87.97    94.63   -0.50   +1.74 <--
+  B_topk10            87.42    95.16   -1.06   +2.27 <--
+  C_wt_late           86.24    93.00   -2.23   +0.11
+  C_wt_early          89.79    92.35   +1.32   -0.54 <--
+  D_exp5              88.53    92.89   +0.06   +0.00
+  D_exp10             88.71    92.89   +0.24   -0.00
+  D_exp20             79.44    92.88   -9.03   -0.01
+  E_combined          85.38    94.04   -3.09   +1.15 <--
+
+=== carpet ===
+    Using ORIGINAL selection
+  50/117 done
+  100/117 done
+
+  carpet results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.96    99.43   +0.00   +0.00
+  B_topk3             99.96    99.43   +0.00   -0.00
+  B_topk5            100.00    99.43   +0.04   -0.00
+  B_topk10           100.00    99.42   +0.04   -0.01
+  C_wt_late           99.92    99.40   -0.04   -0.03
+  C_wt_early         100.00    99.46   +0.04   +0.02
+  D_exp5              99.96    99.43   +0.00   -0.00
+  D_exp10             99.96    99.43   +0.00   -0.00
+  D_exp20             94.64    98.78   -5.32   -0.65
+  E_combined          99.96    99.39   +0.00   -0.04
+
+=== grid ===
+    Selected refs: ['011.png', '067.png', '089.png', '069.png']
+    Using SPREAD selection
+  50/78 done
+
+  grid results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.75    97.81   +0.00   +0.00
+  B_topk3             99.92    97.77   +0.17   -0.04
+  B_topk5             99.92    97.75   +0.17   -0.05
+  B_topk10            99.92    97.73   +0.17   -0.08
+  C_wt_late          100.00    97.72   +0.25   -0.08
+  C_wt_early          99.33    97.78   -0.42   -0.03
+  D_exp5              99.75    97.81   +0.00   -0.00
+  D_exp10             99.71    97.81   -0.04   -0.00
+  D_exp20             83.33    97.43  -16.42   -0.38
+  E_combined         100.00    97.67   +0.25   -0.14
+
+=== hazelnut ===
+    Selected refs: ['119.png', '203.png', '094.png', '129.png']
+    Using SPREAD selection
+  50/110 done
+  100/110 done
+
+  hazelnut results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline         100.00    98.99   +0.00   +0.00
+  B_topk3            100.00    98.97   +0.00   -0.02
+  B_topk5            100.00    98.96   +0.00   -0.03
+  B_topk10           100.00    98.94   +0.00   -0.05
+  C_wt_late          100.00    98.94   +0.00   -0.05
+  C_wt_early         100.00    99.00   +0.00   +0.01
+  D_exp5             100.00    98.99   +0.00   -0.00
+  D_exp10            100.00    98.99   +0.00   -0.00
+  D_exp20             71.25    98.19  -28.75   -0.80
+  E_combined         100.00    98.91   +0.00   -0.08
+
+=== leather ===
+    Using ORIGINAL selection
+  50/124 done
+  100/124 done
+
+  leather results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.97    99.30   +0.00   +0.00
+  B_topk3             99.97    99.30   +0.00   +0.01
+  B_topk5             99.97    99.30   +0.00   +0.01
+  B_topk10            99.93    99.31   -0.03   +0.01
+  C_wt_late          100.00    99.21   +0.03   -0.09
+  C_wt_early          99.97    99.38   +0.00   +0.08
+  D_exp5              99.97    99.30   +0.00   +0.00
+  D_exp10             99.97    99.29   +0.00   -0.01
+  D_exp20             92.19    98.27   -7.78   -1.02
+  E_combined          99.93    99.21   -0.03   -0.08
+
+=== metal_nut ===
+    Using ORIGINAL selection
+  50/115 done
+  100/115 done
+
+  metal_nut results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline         100.00    92.22   +0.00   +0.00
+  B_topk3            100.00    91.68   +0.00   -0.54
+  B_topk5            100.00    91.29   +0.00   -0.93
+  B_topk10           100.00    90.79   +0.00   -1.43
+  C_wt_late          100.00    92.09   +0.00   -0.14
+  C_wt_early         100.00    91.95   +0.00   -0.27
+  D_exp5             100.00    92.22   +0.00   -0.00
+  D_exp10            100.00    92.22   +0.00   -0.00
+  D_exp20             90.91    92.13   -9.09   -0.09
+  E_combined         100.00    91.21   +0.00   -1.01
+
+=== pill ===
+    Using ORIGINAL selection
+  50/167 done
+  100/167 done
+  150/167 done
+
+  pill results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          95.74    96.62   +0.00   +0.00
+  B_topk3             95.50    96.84   -0.25   +0.23
+  B_topk5             95.27    97.01   -0.48   +0.40
+  B_topk10            95.17    97.25   -0.57   +0.63 <--
+  C_wt_late           96.00    96.30   +0.26   -0.32
+  C_wt_early          94.71    96.68   -1.04   +0.06
+  D_exp5              95.73    96.62   -0.01   -0.00
+  D_exp10             95.70    96.62   -0.04   -0.00
+  D_exp20             82.91    96.59  -12.83   -0.03
+  E_combined          96.03    96.61   +0.29   -0.01
+
+=== screw ===
+    Using ORIGINAL selection
+  50/160 done
+  100/160 done
+  150/160 done
+
+  screw results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          82.36    97.06   +0.00   +0.00
+  B_topk3             83.41    97.34   +1.05   +0.29 <--
+  B_topk5             83.45    97.37   +1.09   +0.31 <--
+  B_topk10            83.25    97.26   +0.89   +0.21 <--
+  C_wt_late           84.27    96.97   +1.91   -0.08 <--
+  C_wt_early          79.28    96.76   -3.08   -0.30
+  D_exp5              82.45    97.06   +0.08   -0.00
+  D_exp10             82.60    97.06   +0.24   -0.00
+  D_exp20             74.63    96.98   -7.74   -0.07
+  E_combined          84.29    96.97   +1.93   -0.08 <--
+
+=== tile ===
+    Using ORIGINAL selection
+  50/117 done
+  100/117 done
+
+  tile results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.93    96.26   +0.00   +0.00
+  B_topk3             99.89    96.21   -0.04   -0.06
+  B_topk5             99.93    96.18   -0.00   -0.08
+  B_topk10            99.89    96.14   -0.04   -0.12
+  C_wt_late           99.71    95.85   -0.22   -0.42
+  C_wt_early         100.00    96.61   +0.07   +0.34
+  D_exp5              99.93    96.26   +0.00   -0.00
+  D_exp10             99.89    96.26   -0.04   -0.00
+  D_exp20             89.39    95.57  -10.53   -0.69
+  E_combined          99.59    95.80   -0.34   -0.47
+
+=== toothbrush ===
+    Selected refs: ['005.png', '057.png', '032.png', '009.png']
+    Using SPREAD selection
+
+  toothbrush results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.72    98.71   +0.00   +0.00
+  B_topk3             99.72    98.72   +0.00   +0.01
+  B_topk5             99.58    98.67   -0.14   -0.03
+  B_topk10            99.72    98.59   +0.00   -0.12
+  C_wt_late           98.61    98.58   -1.11   -0.13
+  C_wt_early         100.00    98.74   +0.28   +0.03
+  D_exp5              99.72    98.71   +0.00   -0.00
+  D_exp10             99.86    98.71   +0.14   -0.00
+  D_exp20             75.00    98.17  -24.72   -0.54
+  E_combined          98.89    98.51   -0.83   -0.20
+
+=== transistor ===
+    Using ORIGINAL selection
+  50/100 done
+  100/100 done
+
+  transistor results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          94.38    87.30   +0.00   +0.00
+  B_topk3             93.27    85.23   -1.10   -2.06
+  B_topk5             92.67    83.71   -1.71   -3.59
+  B_topk10            90.75    81.40   -3.62   -5.90
+  C_wt_late           90.00    86.59   -4.38   -0.70
+  C_wt_early          96.10    87.11   +1.73   -0.18 <--
+  D_exp5              94.40    87.30   +0.02   -0.00
+  D_exp10             94.44    87.30   +0.06   -0.00
+  D_exp20             83.08    87.28  -11.29   -0.02
+  E_combined          88.94    83.59   -5.44   -3.70
+
+=== wood ===
+    Using ORIGINAL selection
+  50/79 done
+
+  wood results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          99.56    96.29   +0.00   +0.00
+  B_topk3             99.43    96.28   -0.13   -0.01
+  B_topk5             99.30    96.25   -0.26   -0.04
+  B_topk10            99.04    96.18   -0.53   -0.10
+  C_wt_late           99.74    95.76   +0.18   -0.53
+  C_wt_early          99.39    96.69   -0.18   +0.40
+  D_exp5              99.47    96.29   -0.09   -0.00
+  D_exp10             99.47    96.28   -0.09   -0.01
+  D_exp20             57.89    93.71  -41.67   -2.58
+  E_combined          99.52    95.71   -0.04   -0.58
+
+=== zipper ===
+    Using ORIGINAL selection
+  50/151 done
+  100/151 done
+  150/151 done
+
+  zipper results:
+  Variant           i_AUROC  p_AUROC  diff_i  diff_p
+  --------------------------------------------------
+  A_baseline          98.28    95.23   +0.00   +0.00
+  B_topk3             98.29    95.02   +0.01   -0.21
+  B_topk5             98.08    94.88   -0.20   -0.35
+  B_topk10            97.89    94.66   -0.39   -0.57
+  C_wt_late           97.86    95.47   -0.42   +0.25
+  C_wt_early          98.69    94.52   +0.41   -0.70
+  D_exp5              98.29    95.23   +0.01   -0.00
+  D_exp10             98.25    95.23   -0.03   -0.00
+  D_exp20             98.03    95.19   -0.25   -0.03
+  E_combined          97.66    95.09   -0.62   -0.14
+
+======================================================================
+OVERALL RESULTS (mean across 15 classes)
+======================================================================
+Variant           i_AUROC  p_AUROC  diff_i  diff_p
+--------------------------------------------------
+A_baseline          96.68    95.95   +0.00   +0.00
+B_topk3             96.65    95.82   -0.03   -0.13
+B_topk5             96.51    95.72   -0.17   -0.24
+B_topk10            96.25    95.52   -0.42   -0.44
+C_wt_late           96.21    95.71   -0.47   -0.25
+C_wt_early          96.63    95.94   -0.05   -0.01
+D_exp5              96.68    95.95   +0.00   -0.00
+D_exp10             96.71    95.95   +0.03   -0.00
+D_exp20             81.63    95.45  -15.04   -0.50
+E_combined          96.02    95.44   -0.66   -0.51
+
+[!] All done.
