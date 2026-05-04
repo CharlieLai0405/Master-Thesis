@@ -530,6 +530,11 @@ class OpenLLAMAPEFTModel(nn.Module):
                 sim = F.interpolate(sim,size=224, mode='bilinear', align_corners=True)
                 anomaly_map_all = 1 - sim # (anomaly_map_all + 1 - sim) / 2
 
+                # Add pixel loss for one-shot anomaly map
+                oneshot_map = anomaly_map_all.squeeze(1)  # [B, 224, 224]
+                oneshot_map_2ch = torch.stack([1 - oneshot_map, oneshot_map], dim=1)  # [B, 2, 224, 224]
+                loss_pixel = loss_pixel + self.loss_focal(oneshot_map_2ch, gt) + self.loss_dice(oneshot_map, gt)
+
             anomaly_map_prompts = self.prompt_learner(anomaly_map_all)
 
             # img_embeds = img_embeds + anomaly_map_prompts
