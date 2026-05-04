@@ -324,10 +324,10 @@ class OpenLLAMAPEFTModel(nn.Module):
         with torch.no_grad():
             embeddings = self.visual_encoder(inputs)
             patch_features = embeddings['vision'][1] # bsz x h*w x 1280
-            for i in range(len(patch_features)):
-                patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :]
-
-        return patch_features
+        # Apply image_decoder + patch_adapter (outside no_grad for training)
+        patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens]
+        return patch_tokens
 
     def encode_image_for_one_shot_from_tensor(self, image_tensors):
         if not isinstance(image_tensors, list):
@@ -338,36 +338,36 @@ class OpenLLAMAPEFTModel(nn.Module):
         with torch.no_grad():
             embeddings = self.visual_encoder(inputs)
             patch_features = embeddings['vision'][1] # bsz x h*w x 1280
-            for i in range(len(patch_features)):
-                patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :]
-
-        return patch_features
+        # Apply image_decoder + patch_adapter (outside no_grad for training)
+        patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens]
+        return patch_tokens
 
     def encode_image_for_one_shot_with_aug(self, image_paths):
         image_tensors = data.load_and_transform_vision_data(image_paths, self.device).to(self.llama_model.dtype)
         B,C,H,W = image_tensors.shape
-        # print(B,C,H,W)
 
         rotated_images = torch.zeros((4, B, C, H, W)).to(self.llama_model.dtype).to(self.device)
 
-
         for j, degree in enumerate([0, 1, 2, 3]):
             rotated_img = self.rot90_img(image_tensors, degree)
-            # 存储旋转后的图像
             rotated_images[j] = rotated_img
 
         image_tensors = rotated_images.transpose(0,1).reshape(B * 4, C, H, W)
 
         inputs = {ModalityType.VISION: image_tensors}
-        # convert into visual dtype
         inputs = {key: inputs[key] for key in inputs}
         with torch.no_grad():
             embeddings = self.visual_encoder(inputs)
-            patch_features = embeddings['vision'][1] # bsz x h*w x 1280
-            for i in range(len(patch_features)):
-                patch_features[i] = patch_features[i].transpose(0, 1)[:, 1:, :].reshape(B,4,256,1280).reshape(B, 4 * 256, 1280)
-
-        return patch_features
+            patch_features = embeddings['vision'][1] # bsz*4 x h*w x 1280
+        # Apply image_decoder + patch_adapter
+        patch_tokens = self.image_decoder(patch_features)
+        patch_tokens = [self.patch_adapter(pt) for pt in patch_tokens]
+        # Reshape: merge 4 augmentations per sample
+        for i in range(len(patch_tokens)):
+            # patch_tokens[i]: [B*4, 256, 1024] -> [B, 4*256, 1024]
+            patch_tokens[i] = patch_tokens[i].reshape(B, 4, 256, 1024).reshape(B, 4 * 256, 1024)
+        return patch_tokens
 
     def encode_image_from_tensor(self, image_tensors):
         if not isinstance(image_tensors, list):
