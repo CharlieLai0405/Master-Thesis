@@ -15,18 +15,18 @@ CLASS_NAMES = ['candle', 'capsules', 'cashew', 'chewinggum', 'fryum', 'macaroni1
 
 
 describles = {}
-describles['candle'] = "This is a photo of 4 candles for anomaly detection, every candle should be round, without any damage, flaw, defect, scratch, hole or broken part."
-describles['capsules'] = "This is a photo of many small capsules for anomaly detection, every capsule is green, should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['cashew'] = "This is a photo of a cashew for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['chewinggum'] = "This is a photo of a chewinggom for anomaly detection, which should be white, without any damage, flaw, defect, scratch, hole or broken part."
-describles['fryum'] = "This is a photo of a fryum for anomaly detection on green background, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['macaroni1'] = "This is a photo of 4 macaronis for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['macaroni2'] = "This is a photo of 4 macaronis for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['pcb1'] = "This is a photo of pcb for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['pcb2'] = "This is a photo of pcb for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['pcb3'] = "This is a photo of pcb for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['pcb4'] = "This is a photo of pcb for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
-describles['pipe_fryum'] = "This is a photo of a pipe fryum for anomaly detection, which should be without any damage, flaw, defect, scratch, hole or broken part."
+describles['candle'] = "This is a photo of 4 candles for anomaly detection. Normal candles should have smooth cylindrical surface, uniform color, intact wick, and no melting, cracks, stains, or deformation."
+describles['capsules'] = "This is a photo of many small capsules for anomaly detection. Normal capsules should be uniformly green, intact, properly shaped with smooth surface, and no cracks, leaks, discoloration, or deformation."
+describles['cashew'] = "This is a photo of a cashew for anomaly detection. A normal cashew should have smooth curved surface, uniform light brown color, no cracks, dark spots, broken pieces, or surface contamination."
+describles['chewinggum'] = "This is a photo of a chewinggum for anomaly detection. Normal chewinggum should be white, rectangular with smooth surface, no cracks, missing corners, wrapper residue, or discoloration."
+describles['fryum'] = "This is a photo of a fryum for anomaly detection on green background. A normal fryum should be intact with uniform texture, no cracks, broken pieces, dark spots, or deformation."
+describles['macaroni1'] = "This is a photo of 4 macaronis for anomaly detection. Normal macaronis should be uniformly colored tubular shapes with smooth surface, no cracks, cuts, dark spots, or broken pieces."
+describles['macaroni2'] = "This is a photo of 4 macaronis for anomaly detection. Normal macaronis should have uniform color and shape, smooth curved surface, no cracks, contamination, or structural damage."
+describles['pcb1'] = "This is a photo of a printed circuit board (PCB) for anomaly detection. Normal PCB should have clean solder joints, intact copper traces, properly placed components, no missing parts, bent pins, solder bridges, or contamination."
+describles['pcb2'] = "This is a photo of a printed circuit board (PCB) for anomaly detection. Normal PCB should have intact traces, clean surface, properly aligned components, no shorts, missing solder, or physical damage."
+describles['pcb3'] = "This is a photo of a printed circuit board (PCB) for anomaly detection. Normal PCB should have complete circuitry, uniform solder joints, no corrosion, scratches, missing components, or misalignment."
+describles['pcb4'] = "This is a photo of a printed circuit board (PCB) for anomaly detection. Normal PCB should have intact components, clean solder pads, proper routing, no debris, lifted pads, or short circuits."
+describles['pipe_fryum'] = "This is a photo of a pipe fryum for anomaly detection. A normal pipe fryum should be cylindrical with uniform hollow shape, smooth surface, no cracks, broken ends, or deformation."
 
 
 class VisaDataset(Dataset):
